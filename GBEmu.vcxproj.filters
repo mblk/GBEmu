@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Quelldateien">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headerdateien">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Ressourcendateien">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\emulator\cpu.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\memory.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\rom.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\ram.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\io.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\display.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\pic.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\serial.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\dma.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\timer.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\log.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sdldisplaybitmap.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GBEmu.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\emulator\cpu.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\memory.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\rom.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\ram.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\io.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\display.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\pic.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\serial.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\dma.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\timer.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\log.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sdldisplaybitmap.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
