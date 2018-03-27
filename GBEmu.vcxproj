@@ -165,7 +165,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\GBEmu.cpp" />
+    <ClCompile Include="src\GBEmu.cc" />
     <ClCompile Include="src\emulator\cpu.cc" />
     <ClCompile Include="src\emulator\display.cc" />
     <ClCompile Include="src\emulator\dma.cc" />
