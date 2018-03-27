@@ -51,7 +51,7 @@
     <ClCompile Include="src\sdldisplaybitmap.cc">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\GBEmu.cpp">
+    <ClCompile Include="src\GBEmu.cc">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
