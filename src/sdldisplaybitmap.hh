@@ -11,7 +11,7 @@ namespace GBEmu
 class SdlDisplayBitmap : public Emulator::DisplayBitmap
 {
 public:
-	SdlDisplayBitmap(SDL_Renderer *renderer);
+	SdlDisplayBitmap(SDL_Renderer *renderer, int width, int height);
 	virtual ~SdlDisplayBitmap();
 
 	virtual void Clear() override;
@@ -19,8 +19,11 @@ public:
 	virtual void Present() override;
 
 private:
-	SDL_Renderer *renderer_;
-	SDL_Texture *texture_;
+	SDL_Renderer * const renderer_;
+	const int width_;
+	const int height_;
+
+	SDL_Texture * texture_;
 
 	uint8_t *pixels_;
 	uint16_t pitch_;

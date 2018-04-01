@@ -39,15 +39,24 @@ public:
 class Display
 {
 public:
-	Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap &bitmap);
+	Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap &debugBitmap, DisplayBitmap &displayBitmap);
 	virtual ~Display();
 
 	void Tick(uint32_t ticks);
 
-private:
-	void Refresh();
-	void DrawLine(uint8_t y);
+	static void GetSize(int *width, int *height)
+	{
+		if (width) *width = 160;
+		if (height) *height = 144;
+	}
 
+private:
+	void DrawLine(uint8_t y);
+	void DrawBackgroundTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t lineOffsetY);
+	void DrawSpriteTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t flags, uint8_t lineOffsetY);
+	void DrawTileLine(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, uint8_t lineOffsetY, bool ignore0, bool flipX, bool flipY, bool scrollX, bool scrollY);
+
+	void RefreshDebugBitmap();
 	void DrawBackgroundTile(uint8_t index, uint8_t x, uint8_t y);
 	void DrawSpriteTile(uint8_t index, uint8_t x, uint8_t y, uint8_t flags);
 	void DrawTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, bool ignore0, bool flipX, bool flipY);
@@ -57,9 +66,9 @@ private:
 	Pic &pic_;
 	Ram &vram_;
 	SpriteAttributeTable &oam_;
-	DisplayBitmap &bitmap_;
+	DisplayBitmap &debugBitmap_;
+	DisplayBitmap &displayBitmap_;
 
-	//uint32_t ticks_;
 	uint32_t lyTicks_;
 
 	uint8_t lcdc_;

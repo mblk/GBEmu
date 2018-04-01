@@ -29,12 +29,13 @@ void SpriteAttributeTable::Write(uint16_t offset, uint8_t data)
 	table_[offset] = data;
 }
 
-Display::Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap &bitmap)
+Display::Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap &debugBitmap, DisplayBitmap &displayBitmap)
 	:io_(io),
 	pic_(pic),
 	vram_(vram),
 	oam_(oam),
-	bitmap_(bitmap),
+	debugBitmap_(debugBitmap),
+	displayBitmap_(displayBitmap),	
 	lyTicks_(0),
 	lcdc_(0),
 	lcds_(0),
@@ -79,6 +80,8 @@ void Display::Tick(uint32_t ticks)
 	// 60 * 154 = 9240
 	// block / 9240 = 453
 
+	// The LY can take on any value between 0 through 153. The values between 144 and 153 indicate the V-Blank period. Writing will reset the counter.
+
 	const uint32_t lyTicksMax = 453; // ~60Hz * 154
 
 	lyTicks_ += ticks;
@@ -87,45 +90,188 @@ void Display::Tick(uint32_t ticks)
 	{
 		lyTicks_ -= lyTicksMax;
 
+		// Increase LY.
 		ly_++;
-
-		if (ly_ == 154)
-		{
+		if (ly_ == 154) {
 			ly_ = 0;
+			RefreshDebugBitmap();
+		}
 
-			// Update display.
-			Refresh();
+		// Update display.
+		if (ly_ == 0) {
+			displayBitmap_.Clear();
+		}
+		DrawLine(ly_);
+		if (ly_ == 144) {
+			displayBitmap_.Present();
+		}
 
+		// Raise VBLANK interrupt?
+		if (ly_ == 144) {
 			pic_.RaiseInterrupts(INT_VBLANK);
 		}
 
-		//DrawLine(ly_);
-		// TODO Rather than one Refresh - must draw line per line and apply scrolling etc.
-
+		// Raise Coincidence interrupt?
 		if (ly_ == lyc_)
 		{
-			lcds_ |= 0x4;
+			lcds_ |= 0x4; // Set Coincidence Flag
 
-			if (lcdc_ & 0x40)
-			{
+			if (lcds_ & 0x40) {
 				pic_.RaiseInterrupts(INT_LCDC);
 			}
 		}
 		else
 		{
-			lcds_ &= ~0x4;
+			lcds_ &= ~0x4; // Clear Coincidence Flag
 		}
 	}
 }
 
-void Display::Refresh()
+void Display::DrawLine(uint8_t y)
 {
-	// TODO Can not perform refresh in one operation.
-	//      Must refresh line per line :(
-	//      Mario: Info bar at the top does not scroll, the rest does.
-	//printf("Scroll %u %u Window %u %u\n", scx_, scy_, wx_, wy_);
+	if (y > 143) return;
 
-	bitmap_.Clear();
+	// Background
+	if (lcdc_ & 0x01)
+	{
+		const uint16_t backgroundTileMapBase = (lcdc_ & 0x08) ? 0x1C00 : 0x1800;
+
+		uint8_t tileY = y / 8;
+		uint8_t lineOffsetY = y % 8;
+
+		for (uint8_t tileX = 0; tileX < 32; tileX++) {
+
+			uint8_t tile = vram_.Read(backgroundTileMapBase + tileY * 32 + tileX);
+
+			DrawBackgroundTileLine(tile, tileX * 8, tileY * 8, lineOffsetY);
+		}
+	}
+
+	// Sprites
+	if (lcdc_ & 0x02)
+	{
+		// Size: lcdc_ & 0x04
+		// 0 -> 8x8
+		// 1 -> 8x16
+		assert(!(lcdc_ & 0x4));
+
+		for (uint16_t index = 0; index < 40; index++)
+		{
+			uint8_t d[4];
+
+			for (uint16_t i = 0; i<4; i++)
+				d[i] = oam_.Read(index * 4 + i);
+
+			uint8_t spriteY = d[0] - 16u;
+			uint8_t spriteX = d[1] - 8u;
+			uint8_t spriteIndex = d[2];
+			uint8_t spriteFlags = d[3];
+
+			// Off screen?
+			//if (spriteX >= 144u) continue;
+			if (y - spriteY >= 8u) continue;
+
+			uint8_t lineOffsetY = y - spriteY;
+			assert(lineOffsetY < 8u);
+
+			DrawSpriteTileLine(spriteIndex, spriteX, spriteY, spriteFlags, lineOffsetY);
+		}
+	}
+}
+
+void Display::DrawBackgroundTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t lineOffsetY)
+{
+	uint16_t tileDataOffset = 0;
+
+	if (lcdc_ & 0x10)
+	{
+		tileDataOffset += index * 16;
+	}
+	else
+	{
+		//tileDataOffset = 0x0800;
+		tileDataOffset = 0x1000;
+		int8_t signedIndex = reinterpret_cast<int8_t&>(index);
+		tileDataOffset += signedIndex * 16;
+	}
+
+	DrawTileLine(tileDataOffset, x, y, lineOffsetY, false, false, false, true, true);
+}
+
+void Display::DrawSpriteTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t flags, uint8_t lineOffsetY)
+{
+	uint16_t tileDataOffset = index * 16;
+
+	bool flipX = flags & 0x20;
+	bool flipY = flags & 0x40;
+
+	// TODO palette number.
+
+	DrawTileLine(tileDataOffset, x, y, lineOffsetY, true, flipX, flipY, false, false);
+}
+
+void Display::DrawTileLine(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, uint8_t lineOffsetY, bool ignore0, bool flipX, bool flipY, bool scrollX, bool scrollY)
+{
+	uint8_t tileData[16];
+	for (size_t i = 0; i < 16; i++)
+		tileData[i] = vram_.Read(tileDataOffset + i);
+
+	uint8_t colors[4];
+	colors[3] = bgp_ >> 6;
+	colors[2] = (bgp_ & 0x30) >> 4;
+	colors[1] = (bgp_ & 0x0C) >> 2;
+	colors[0] = (bgp_ & 0x03);
+
+	uint8_t y = lineOffsetY;
+
+	// TODO scy
+	assert(!scy_);
+
+	for (uint8_t x = 0; x < 8; x++)
+	{
+		uint8_t targetX = destX + x;
+
+		if (scrollX) targetX -= scx_;
+
+		if (targetX >= 160) continue;
+
+		uint8_t c = 0;
+
+		if (flipX)
+		{
+			if (tileData[y * 2 + 0] & (0x01 << x)) c += 1;
+			if (tileData[y * 2 + 1] & (0x01 << x)) c += 2;
+		}
+		else
+		{
+			if (tileData[y * 2 + 0] & (0x80 >> x)) c += 1;
+			if (tileData[y * 2 + 1] & (0x80 >> x)) c += 2;
+		}
+
+		// Must ignore color=0 for sprites.
+		if (!c && ignore0) continue;
+
+		uint8_t brightness = 0;
+		switch (colors[c])
+		{
+		case 0: brightness = 255; break;
+		case 1: brightness = 170; break;
+		case 2: brightness = 85; break;
+		case 3: brightness = 0; break;
+		}
+
+		displayBitmap_.DrawPixel(targetX, destY + y, brightness);
+	}
+}
+
+
+
+
+
+
+void Display::RefreshDebugBitmap()
+{
+	debugBitmap_.Clear();
 
 	// Background
 	if (lcdc_ & 0x01)
@@ -137,8 +283,7 @@ void Display::Refresh()
 
 				uint8_t tile = vram_.Read(backgroundTileMapBase + tileY * 32 + tileX);
 
-				//DrawTile(tile, tileX * 8, tileY * 8);
-				DrawBackgroundTile(tile, tileX * 8 - scx_, tileY * 8 - scy_);
+				DrawBackgroundTile(tile, tileX * 8, tileY * 8);
 			}
 		}
 	}
@@ -166,7 +311,7 @@ void Display::Refresh()
 		}
 	}
 
-	bitmap_.Present();
+	debugBitmap_.Present();
 }
 
 void Display::DrawBackgroundTile(uint8_t index, uint8_t x, uint8_t y)
@@ -241,7 +386,7 @@ void Display::DrawTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, bo
 			case 3: brightness = 0; break;
 			}
 
-			bitmap_.DrawPixel(destX + x, destY + y, brightness);
+			debugBitmap_.DrawPixel(destX + x, destY + y, brightness);
 		}
 	}
 }
