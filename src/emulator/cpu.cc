@@ -1043,7 +1043,7 @@ uint32_t Cpu::Tick()
 			halted_ = false;
 		}
 
-		ticks += 4; // TODO
+		ticks += 0; // TODO
 		return ticks;
 	}
 
@@ -1067,7 +1067,7 @@ uint32_t Cpu::Tick()
 			if (log_.InterruptEnabled())
 				log_.Interrupt("Handle " + AsHexString(interruptMask) + " at " + AsHexString(regs_.pc));
 
-			ticks += 32; // TODO
+			ticks += 0; // TODO
 			return ticks;
 		}
 	}

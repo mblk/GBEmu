@@ -54,6 +54,12 @@
     <ClCompile Include="src\GBEmu.cc">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\sdlsound.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\sound.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\emulator\cpu.hh">
@@ -90,6 +96,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\sdldisplaybitmap.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sdlsound.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\sound.hh">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

@@ -27,8 +27,6 @@ private:
 
 	uint8_t *pixels_;
 	uint16_t pitch_;
-
 };
-
 
 }

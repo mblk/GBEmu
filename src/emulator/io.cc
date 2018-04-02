@@ -12,36 +12,6 @@ IO::IO(Log &log)
 	ports_({}),
 	ram_({})
 {
-	// Sound Channel 1
-	Register("?", 0x10, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x11, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x12, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x13, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x14, []() { return 0; }, [](uint8_t v) { });
-	// Sound Channel 2
-	Register("?", 0x16, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x17, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x18, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x19, []() { return 0; }, [](uint8_t v) { });
-	// Sound Channel 3
-	Register("?", 0x1A, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x1B, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x1C, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x1D, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x1E, []() { return 0; }, [](uint8_t v) { });
-	for(uint8_t i=0x30; i<=0x3F; i++)
-		Register("?", i, []() { return 0; }, [](uint8_t v) { });
-	// Sound Channel 4
-	Register("?", 0x20, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x21, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x22, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x23, []() { return 0; }, [](uint8_t v) { });
-	// Sound Control
-	Register("?", 0x24, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x25, []() { return 0; }, [](uint8_t v) { });
-	Register("?", 0x26, []() { return 0; }, [](uint8_t v) { });
-
-
 	// Joypad
 	Register("JOYP", 0x00, [&]() {
 		uint8_t r = 0xF;

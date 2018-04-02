@@ -25,7 +25,7 @@ Log::Log(const std::string &filename)
 	//mask_ |= LOG_STATE;
 	//mask_ |= LOG_ROM;
 	//mask_ |= LOG_MEMORY;
-	//mask_ |= LOG_IO;
+	mask_ |= LOG_IO;
 	//mask_ |= LOG_PERIPHERAL;
 	//mask_ = 0xFF;
 }

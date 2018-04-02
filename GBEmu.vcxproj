@@ -165,6 +165,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\emulator\sound.cc" />
     <ClCompile Include="src\GBEmu.cc" />
     <ClCompile Include="src\emulator\cpu.cc" />
     <ClCompile Include="src\emulator\display.cc" />
@@ -178,6 +179,7 @@
     <ClCompile Include="src\emulator\serial.cc" />
     <ClCompile Include="src\emulator\timer.cc" />
     <ClCompile Include="src\sdldisplaybitmap.cc" />
+    <ClCompile Include="src\sdlsound.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\emulator\cpu.hh" />
@@ -190,8 +192,10 @@
     <ClInclude Include="src\emulator\ram.hh" />
     <ClInclude Include="src\emulator\rom.hh" />
     <ClInclude Include="src\emulator\serial.hh" />
+    <ClInclude Include="src\emulator\sound.hh" />
     <ClInclude Include="src\emulator\timer.hh" />
     <ClInclude Include="src\sdldisplaybitmap.hh" />
+    <ClInclude Include="src\sdlsound.hh" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
