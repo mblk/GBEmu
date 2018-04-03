@@ -51,7 +51,7 @@
     <ClCompile Include="src\sdldisplaybitmap.cc">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\GBEmu.cc">
+    <ClCompile Include="src\main.cc">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\sdlsound.cc">

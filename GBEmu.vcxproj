@@ -168,7 +168,7 @@
     <ClCompile Include="src\emulator\emulator.cc" />
     <ClCompile Include="src\emulator\keypad.cc" />
     <ClCompile Include="src\emulator\sound.cc" />
-    <ClCompile Include="src\GBEmu.cc" />
+    <ClCompile Include="src\main.cc" />
     <ClCompile Include="src\emulator\cpu.cc" />
     <ClCompile Include="src\emulator\display.cc" />
     <ClCompile Include="src\emulator\dma.cc" />
