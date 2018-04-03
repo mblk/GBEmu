@@ -29,7 +29,7 @@ void SpriteAttributeTable::Write(uint16_t offset, uint8_t data)
 	table_[offset] = data;
 }
 
-Display::Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap &debugBitmap, DisplayBitmap &displayBitmap)
+Display::Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap *debugBitmap, DisplayBitmap &displayBitmap)
 	:io_(io),
 	pic_(pic),
 	vram_(vram),
@@ -73,18 +73,18 @@ Display::~Display()
 {
 }
 
-void Display::Tick(uint32_t ticks)
+void Display::Tick(int ticksPassed)
 {
 	// CPU clock: 4.194304MHz
+	// The LY can take on any value between 0 through 153.
+	// The values between 144 and 153 indicate the V-Blank period. Writing will reset the counter.
 	// LY 00..144..153(vblank)
 	// 60 * 154 = 9240
 	// block / 9240 = 453
 
-	// The LY can take on any value between 0 through 153. The values between 144 and 153 indicate the V-Blank period. Writing will reset the counter.
+	const int lyTicksMax = 453; // ~60Hz * 154
 
-	const uint32_t lyTicksMax = 453; // ~60Hz * 154
-
-	lyTicks_ += ticks;
+	lyTicks_ += ticksPassed;
 
 	while (lyTicks_ > lyTicksMax)
 	{
@@ -94,7 +94,7 @@ void Display::Tick(uint32_t ticks)
 		ly_++;
 		if (ly_ == 154) {
 			ly_ = 0;
-			RefreshDebugBitmap();
+			DrawDebug();
 		}
 
 		// Update display.
@@ -143,7 +143,7 @@ void Display::DrawLine(uint8_t y)
 
 			uint8_t tile = vram_.Read(backgroundTileMapBase + tileY * 32 + tileX);
 
-			DrawBackgroundTileLine(tile, tileX * 8, tileY * 8, lineOffsetY);
+			DrawLineBackgroundTile(tile, tileX * 8, tileY * 8, lineOffsetY);
 		}
 	}
 
@@ -174,12 +174,12 @@ void Display::DrawLine(uint8_t y)
 			uint8_t lineOffsetY = y - spriteY;
 			assert(lineOffsetY < 8u);
 
-			DrawSpriteTileLine(spriteIndex, spriteX, spriteY, spriteFlags, lineOffsetY);
+			DrawLineSpriteTile(spriteIndex, spriteX, spriteY, spriteFlags, lineOffsetY);
 		}
 	}
 }
 
-void Display::DrawBackgroundTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t lineOffsetY)
+void Display::DrawLineBackgroundTile(uint8_t index, uint8_t x, uint8_t y, uint8_t lineOffsetY)
 {
 	uint16_t tileDataOffset = 0;
 
@@ -195,10 +195,10 @@ void Display::DrawBackgroundTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_
 		tileDataOffset += signedIndex * 16;
 	}
 
-	DrawTileLine(tileDataOffset, x, y, lineOffsetY, false, false, false, true, true);
+	DrawLineTile(tileDataOffset, x, y, lineOffsetY, false, false, false, true, true);
 }
 
-void Display::DrawSpriteTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t flags, uint8_t lineOffsetY)
+void Display::DrawLineSpriteTile(uint8_t index, uint8_t x, uint8_t y, uint8_t flags, uint8_t lineOffsetY)
 {
 	uint16_t tileDataOffset = index * 16;
 
@@ -207,13 +207,13 @@ void Display::DrawSpriteTileLine(uint8_t index, uint8_t x, uint8_t y, uint8_t fl
 
 	// TODO palette number.
 
-	DrawTileLine(tileDataOffset, x, y, lineOffsetY, true, flipX, flipY, false, false);
+	DrawLineTile(tileDataOffset, x, y, lineOffsetY, true, flipX, flipY, false, false);
 }
 
-void Display::DrawTileLine(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, uint8_t lineOffsetY, bool ignore0, bool flipX, bool flipY, bool scrollX, bool scrollY)
+void Display::DrawLineTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, uint8_t lineOffsetY, bool ignore0, bool flipX, bool flipY, bool scrollX, bool scrollY)
 {
 	uint8_t tileData[16];
-	for (size_t i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		tileData[i] = vram_.Read(tileDataOffset + i);
 
 	uint8_t colors[4];
@@ -269,9 +269,11 @@ void Display::DrawTileLine(uint16_t tileDataOffset, uint8_t destX, uint8_t destY
 
 
 
-void Display::RefreshDebugBitmap()
+void Display::DrawDebug()
 {
-	debugBitmap_.Clear();
+	if (!debugBitmap_) return;
+
+	debugBitmap_->Clear();
 
 	// Background
 	if (lcdc_ & 0x01)
@@ -283,7 +285,7 @@ void Display::RefreshDebugBitmap()
 
 				uint8_t tile = vram_.Read(backgroundTileMapBase + tileY * 32 + tileX);
 
-				DrawBackgroundTile(tile, tileX * 8, tileY * 8);
+				DrawDebugBackgroundTile(tile, tileX * 8, tileY * 8);
 			}
 		}
 	}
@@ -307,14 +309,14 @@ void Display::RefreshDebugBitmap()
 			int x = d[1] - 8;
 			if (x < 0 || y < 0) continue; // offscreen?
 
-			DrawSpriteTile(d[2], (uint8_t)x, (uint8_t)y, d[3]);
+			DrawDebugSpriteTile(d[2], (uint8_t)x, (uint8_t)y, d[3]);
 		}
 	}
 
-	debugBitmap_.Present();
+	debugBitmap_->Present();
 }
 
-void Display::DrawBackgroundTile(uint8_t index, uint8_t x, uint8_t y)
+void Display::DrawDebugBackgroundTile(uint8_t index, uint8_t x, uint8_t y)
 {
 	uint16_t tileDataOffset = 0;
 
@@ -330,10 +332,10 @@ void Display::DrawBackgroundTile(uint8_t index, uint8_t x, uint8_t y)
 		tileDataOffset += signedIndex * 16;
 	}
 
-	DrawTile(tileDataOffset, x, y, false, false, false);
+	DrawDebugTile(tileDataOffset, x, y, false, false, false);
 }
 
-void Display::DrawSpriteTile(uint8_t index, uint8_t x, uint8_t y, uint8_t flags)
+void Display::DrawDebugSpriteTile(uint8_t index, uint8_t x, uint8_t y, uint8_t flags)
 {
 	uint16_t tileDataOffset = index * 16;
 
@@ -342,13 +344,13 @@ void Display::DrawSpriteTile(uint8_t index, uint8_t x, uint8_t y, uint8_t flags)
 
 	// TODO palette number.
 
-	DrawTile(tileDataOffset, x, y, true, flipX, flipY);
+	DrawDebugTile(tileDataOffset, x, y, true, flipX, flipY);
 }
 
-void Display::DrawTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, bool ignore0, bool flipX, bool flipY)
+void Display::DrawDebugTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, bool ignore0, bool flipX, bool flipY)
 {
 	uint8_t tileData[16];
-	for (size_t i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		tileData[i] = vram_.Read(tileDataOffset + i);
 
 	uint8_t colors[4];
@@ -386,7 +388,7 @@ void Display::DrawTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY, bo
 			case 3: brightness = 0; break;
 			}
 
-			debugBitmap_.DrawPixel(destX + x, destY + y, brightness);
+			debugBitmap_->DrawPixel(destX + x, destY + y, brightness);
 		}
 	}
 }

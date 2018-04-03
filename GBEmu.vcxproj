@@ -165,6 +165,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\emulator\emulator.cc" />
+    <ClCompile Include="src\emulator\keypad.cc" />
     <ClCompile Include="src\emulator\sound.cc" />
     <ClCompile Include="src\GBEmu.cc" />
     <ClCompile Include="src\emulator\cpu.cc" />
@@ -185,7 +187,9 @@
     <ClInclude Include="src\emulator\cpu.hh" />
     <ClInclude Include="src\emulator\display.hh" />
     <ClInclude Include="src\emulator\dma.hh" />
+    <ClInclude Include="src\emulator\emulator.hh" />
     <ClInclude Include="src\emulator\io.hh" />
+    <ClInclude Include="src\emulator\keypad.hh" />
     <ClInclude Include="src\emulator\log.hh" />
     <ClInclude Include="src\emulator\memory.hh" />
     <ClInclude Include="src\emulator\pic.hh" />

@@ -13,8 +13,6 @@ public:
 	SdlSound();
 	virtual ~SdlSound();
 
-	void Tick(int consumedTicks);
-
 	virtual void SetFrequency1(int freq) override;
 	virtual void SetVolume1(int volume) override;
 	virtual void SetFrequency2(int freq) override;
@@ -25,12 +23,7 @@ public:
 	virtual void SetPlayback3(bool playback) override;
 
 private:
-
 	uint32_t deviceId_;
-
-
-
-
 };
 
 }

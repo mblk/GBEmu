@@ -34,27 +34,12 @@ public:
 
 	void Register(const std::string &name, uint8_t offset, IOReadHandler read, IOWriteHandler write);
 
-	void SetInput(bool left, bool right, bool up, bool down, bool a, bool b, bool start, bool select)
-	{
-		left_ = left;
-		right_ = right;
-		up_ = up;
-		down_ = down;
-		a_ = a;
-		b_ = b;
-		start_ = start;
-		select_ = select;
-	}
-
 private:
 	Log & log_;
 
 	static constexpr size_t size_ = 0x100; // 256
 	std::array<IOPort, size_> ports_;
 	std::array<uint8_t, size_> ram_;
-
-	bool left_, right_, up_, down_, a_, b_, start_, select_;
-	bool buttonKeys_, directionKeys_;
 };
 
 }

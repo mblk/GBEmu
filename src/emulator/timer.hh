@@ -15,7 +15,7 @@ public:
 	Timer(Log &log, IO &io, Pic &pic);
 	virtual ~Timer();
 
-	void Tick(uint32_t ticks);
+	void Tick(int ticksPassed);
 
 private:
 	Log & log_;
@@ -27,8 +27,8 @@ private:
 	uint8_t tmaValue_;
 	uint8_t tacValue_;
 
-	uint32_t divTicks_;
-	uint32_t timaTicks_;
+	int divTicks_;
+	int timaTicks_;
 
 };
 

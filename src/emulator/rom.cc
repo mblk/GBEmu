@@ -37,7 +37,7 @@ void Rom::Load(const std::string &filename)
 	stream.seekg(0, std::ios_base::end);
 	auto endPosition = stream.tellg();
 	stream.seekg(0, std::ios_base::beg);
-	size_t fileSize = endPosition - startPosition;
+	size_t fileSize = size_t(endPosition - startPosition);
 
 	log_.Rom("File size: " + AsHexString(fileSize));
 

@@ -60,6 +60,12 @@
     <ClCompile Include="src\emulator\sound.cc">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="src\emulator\emulator.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\emulator\keypad.cc">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\emulator\cpu.hh">
@@ -102,6 +108,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\emulator\sound.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\emulator.hh">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\emulator\keypad.hh">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

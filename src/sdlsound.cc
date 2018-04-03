@@ -154,11 +154,6 @@ SdlSound::~SdlSound()
 	}
 }
 
-void SdlSound::Tick(int consumedTicks)
-{
-
-}
-
 void SdlSound::SetFrequency1(int freq)
 {
 	if (freq < 10) freq = 10;

@@ -12,32 +12,6 @@ IO::IO(Log &log)
 	ports_({}),
 	ram_({})
 {
-	// Joypad
-	Register("JOYP", 0x00, [&]() {
-		uint8_t r = 0xF;
-
-		if (buttonKeys_)
-		{
-			if (start_) r &= ~8u;
-			if (select_) r &= ~4u;
-			if (b_) r &= ~2u;
-			if (a_) r &= ~1u;
-		}
-		if (directionKeys_)
-		{
-			if (down_) r &= ~8u;
-			if (up_) r &= ~4u;
-			if (left_) r &= ~2u;
-			if (right_) r &= ~1u;
-		}
-
-		return r;
-	}, [&](uint8_t v) {
-
-		if (!(v & 0x20)) buttonKeys_ = true; else buttonKeys_ = false;
-		if (!(v & 0x10)) directionKeys_ = true; else directionKeys_ = false;
-	});
-
 	// KEY1 - CGB Mode Only - Prepare Speed Switch
 	Register("KEY1", 0x4D, []() { return 0x7E; }, [](uint8_t v) { });
 }

@@ -53,10 +53,9 @@ Timer::Timer(Log &log, IO &io, Pic &pic)
 
 Timer::~Timer()
 {
-
 }
 
-void Timer::Tick(uint32_t ticks)
+void Timer::Tick(int ticksPassed)
 {
 	// CPU clock: 4.194304MHz
 	// x / 16 -> 262144 Hz
@@ -64,7 +63,7 @@ void Timer::Tick(uint32_t ticks)
 	// x / 256 -> 16384 Hz
 	// x / 1024 -> 4096 Hz
 
-	divTicks_ += ticks;
+	divTicks_ += ticksPassed;
 	if (divTicks_ > 256) // 16384 Hz
 	{
 		divTicks_ = 0;
@@ -73,7 +72,7 @@ void Timer::Tick(uint32_t ticks)
 
 	if (tacValue_ & 0x4)
 	{
-		uint32_t timaOverflow = 0;
+		int timaOverflow = 0;
 		switch (tacValue_ & 0x3)
 		{
 		case 0: timaOverflow = 1024; break; // 4096 Hz
@@ -82,7 +81,7 @@ void Timer::Tick(uint32_t ticks)
 		case 3: timaOverflow = 256; break; // 16384 Hz
 		}
 
-		timaTicks_ += ticks;
+		timaTicks_ += ticksPassed;
 
 		while (timaTicks_ > timaOverflow)
 		{
