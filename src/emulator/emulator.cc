@@ -54,6 +54,8 @@ Emulator::Emulator(
 	dma_ = new Dma(*io_, *memory_);
 	timer_ = new Timer(*log_, *io_, *pic_);
 	cpu_ = new Cpu(*log_, *memory_, *io_, *pic_);
+
+	prevTime_ = std::chrono::high_resolution_clock::now();
 }
 
 Emulator::~Emulator()
@@ -62,33 +64,42 @@ Emulator::~Emulator()
 
 void Emulator::Tick(bool keys[8])
 {
-	//const int cpuBatchSize = 64;
-	const int cpuBatchSize = 16;
+	const int numberOfBatchesToSimulate = 4;
+	const int numberOfCpuCyclesPerBatch = 4;
 
-	const auto startTime = std::chrono::high_resolution_clock::now();
+	const int totalNumberOfCycles = numberOfBatchesToSimulate * numberOfCpuCyclesPerBatch;
 
 	// Run emulator ticks.
-	int consumedTicks = 0;
-	for (int i = 0; i < cpuBatchSize; i++)
-		consumedTicks += cpu_->Tick();
+	int totalTicks = 0;
+	for(int batch = 0; batch < numberOfBatchesToSimulate; batch++)
+	{
+		int batchTicks = 0;
+		for (int cpuCycle = 0; cpuCycle < numberOfCpuCyclesPerBatch; cpuCycle++)
+			batchTicks += cpu_->Tick();
+		totalTicks += batchTicks;
 
-	keypad_->SetKeys(keys);
-	display_->Tick(consumedTicks);
-	timer_->Tick(consumedTicks);
-	sound_->Tick(consumedTicks);
+		keypad_->SetKeys(keys);
+		display_->Tick(batchTicks);
+		timer_->Tick(batchTicks);
+		sound_->Tick(batchTicks);
+	}
 
 	// Slow down to match the correct CPU speed.
 	for (;;)
 	{
+		auto now = std::chrono::high_resolution_clock::now();
+
 		// CPU clock: 4.194304MHz
-		//const long long nsPerTick = 1000000000 / 5594304; // ~238
 		const long long nsPerTick = 1000000000 / 4194304; // ~238
-		const long long targetTimeNs = nsPerTick * consumedTicks;
-		const auto deltaTime = std::chrono::high_resolution_clock::now() - startTime;
+		const long long targetTimeNs = nsPerTick * totalTicks;
+		const auto deltaTime = now - prevTime_;
 		const long long currentTimeNs = deltaTime.count();
 		const long long timeToSleep = targetTimeNs - currentTimeNs;
 
-		if (timeToSleep < 0) break;
+		if (timeToSleep < 0) {
+			prevTime_ = now;
+			break;
+		}
 	}
 }
 

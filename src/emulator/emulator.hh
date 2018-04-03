@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <chrono>
 
 namespace GBEmu::Emulator
 {
@@ -53,6 +54,10 @@ private:
 	Dma *dma_;
 	Timer *timer_;
 	Cpu *cpu_;
+
+	std::chrono::high_resolution_clock::time_point prevTime_;
+
+
 
 };
 

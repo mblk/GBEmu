@@ -24,7 +24,7 @@ int TargetFreq2 = 150;
 int TargetVolume2 = 0;
 int TargetFreq3 = 150;
 int TargetVolume3 = 0;
-uint8_t Pattern3[16];
+uint8_t Pattern3[16] = {};
 int Pattern3Index = 0;
 bool Playback3 = false;
 
@@ -48,6 +48,8 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 
 	for (int i = 0; i < len; )
 	{
+		int sources = 0;
+
 		CurrentCycleIndex1++;
 		if (CurrentCycleIndex1 > CycleLength1) CurrentCycleIndex1 = 0;
 		CurrentCycleIndex2++;
@@ -58,17 +60,27 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 		int s = 0;
 
 #if 1
-		if (CurrentCycleIndex1 < CycleLength1 / 2)
-			s -= TargetVolume1;
-		else
-			s += TargetVolume1;
+		if (TargetVolume1)
+		{
+			if (CurrentCycleIndex1 < CycleLength1 / 2)
+				s -= TargetVolume1;
+			else
+				s += TargetVolume1;
+
+			sources++;
+		}
 #endif
 
 #if 1
-		if (CurrentCycleIndex2 < CycleLength2 / 2)
-			s -= TargetVolume2;
-		else
-			s += TargetVolume2;
+		if (TargetVolume2)
+		{
+			if (CurrentCycleIndex2 < CycleLength2 / 2)
+				s -= TargetVolume2;
+			else
+				s += TargetVolume2;
+
+			sources++;
+		}
 #endif
 
 #if 1
@@ -104,6 +116,8 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 				Pattern3Index++;
 				if (Pattern3Index == 32) Pattern3Index = 0;
 			}
+
+			sources++;
 		}
 		else
 		{
@@ -112,21 +126,26 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 		}
 #endif
 
-		//stream[i++] = int8_t(s / 3);
+#if 0
+		// Hm... does not sound right.
+		// How do you properly mix those signals?
+		if (sources)
+			stream[i++] = int8_t(s / sources);
+		else
+			stream[i++] = 0;
+#else
 		stream[i++] = int8_t(s);
+#endif
 	}
 }
 
 SdlSound::SdlSound()
 	:deviceId_(0)
 {
-	for (int i = 0; i < SDL_GetNumAudioDevices(0); i++) {
-		const char *name = SDL_GetAudioDeviceName(i, 0);
-		printf("Audio %d: '%s'\n", i, name);
-	}
-
-	memset(Pattern3, 0, 16);
-
+	//for (int i = 0; i < SDL_GetNumAudioDevices(0); i++) {
+	//	const char *name = SDL_GetAudioDeviceName(i, 0);
+	//	printf("Audio %d: '%s'\n", i, name);
+	//}
 
 	SDL_AudioSpec want = {}, have = {};
 
