@@ -28,14 +28,8 @@ Dma::Dma(IO &io, Memory &memory)
 	});
 }
 
-Dma::~Dma()
-{
-
-}
-
 void Dma::Tick()
 {
-
 }
 
 }

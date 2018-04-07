@@ -16,10 +16,6 @@ IO::IO(Log &log)
 	Register("KEY1", 0x4D, []() { return 0x7E; }, [](uint8_t v) { });
 }
 
-IO::~IO()
-{
-}
-
 uint8_t IO::Read(uint16_t offset)
 {
 	assert(offset < size_);

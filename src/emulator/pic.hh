@@ -18,7 +18,6 @@ class Pic
 {
 public:
 	Pic(Log &log, IO &io);
-	virtual ~Pic();
 
 	void RaiseInterrupts(uint8_t mask);
 	uint8_t GetAndClearInterrupt();

@@ -26,10 +26,6 @@ Serial::Serial(Log &log, IO &io)
 	});
 }
 
-Serial::~Serial()
-{
-}
-
 void Serial::Tick()
 {
 }

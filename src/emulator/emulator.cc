@@ -21,52 +21,72 @@
 namespace GBEmu::Emulator
 {
 
+struct Emulator::EmulatorData
+{
+	EmulatorData(
+		const std::string &logFileName,
+		const std::string &romFileName,
+		DisplayBitmap * const debugBitmap,
+		DisplayBitmap &displayBitmap,
+		SoundDevice &soundDevice)
+		:log(logFileName),
+		rom(log),
+		io(log),
+		memory(log),
+		keypad(io),
+		pic(log, io),
+		display(io, pic, vram, oam, debugBitmap, displayBitmap),
+		sound(io, soundDevice),
+		serial(log, io),
+		dma(io, memory),
+		timer(log, io, pic),
+		cpu(log, memory, io, pic)
+	{
+		rom.Load(romFileName);
+
+		memory.Register(&rom, 0x0000);
+		memory.Register(&vram, 0x8000);
+		memory.Register(&extram, 0xA000);
+		memory.Register(&ram, 0xC000);
+		memory.Register(&oam, 0xFE00);
+		memory.Register(&io, 0xFF00);
+	}
+
+	Log log;
+	Rom rom;
+	Ram ram;
+	Ram vram;
+	Ram extram;
+	SpriteAttributeTable oam;
+	IO io;
+	Memory memory;
+	Keypad keypad;
+	Pic pic;
+	Display display;
+	Sound sound;
+	Serial serial;
+	Dma dma;
+	Timer timer;
+	Cpu cpu;
+};
+
 Emulator::Emulator(
 	const std::string &logFileName,
 	const std::string &romFileName,
 	DisplayBitmap * const debugBitmap,
 	DisplayBitmap &displayBitmap,
 	SoundDevice &soundDevice)
-{
-	log_ = new Log(logFileName);
-
-	rom_ = new Rom(*log_);
-	rom_->Load(romFileName);
-	vram_ = new Ram();
-	extram_ = new Ram();
-	ram_ = new Ram();
-	oam_ = new SpriteAttributeTable();
-	io_ = new IO(*log_);
-
-	memory_ = new Memory(*log_);
-	memory_->Register(rom_, 0x0000);
-	memory_->Register(vram_, 0x8000);
-	memory_->Register(extram_, 0xA000);
-	memory_->Register(ram_, 0xC000);
-	memory_->Register(oam_, 0xFE00);
-	memory_->Register(io_, 0xFF00);
-
-	keypad_ = new Keypad(*io_);
-	pic_ = new Pic(*log_, *io_);
-	display_ = new Display(*io_, *pic_, *vram_, *oam_, debugBitmap, displayBitmap);
-	sound_ = new Sound(*io_, soundDevice);
-	serial_ = new Serial(*log_, *io_);
-	dma_ = new Dma(*io_, *memory_);
-	timer_ = new Timer(*log_, *io_, *pic_);
-	cpu_ = new Cpu(*log_, *memory_, *io_, *pic_);
-
-	prevTime_ = std::chrono::high_resolution_clock::now();
-}
-
-Emulator::~Emulator()
+	:emulatorData_(std::make_unique<EmulatorData>(
+		logFileName, romFileName, debugBitmap,
+		displayBitmap, soundDevice)),
+	prevTime_(std::chrono::high_resolution_clock::now())
 {
 }
 
-void Emulator::Tick(bool keys[8])
+void Emulator::Tick(const KeypadKeys &keys)
 {
 	const int numberOfBatchesToSimulate = 4;
 	const int numberOfCpuCyclesPerBatch = 4;
-
 	const int totalNumberOfCycles = numberOfBatchesToSimulate * numberOfCpuCyclesPerBatch;
 
 	// Run emulator ticks.
@@ -75,13 +95,13 @@ void Emulator::Tick(bool keys[8])
 	{
 		int batchTicks = 0;
 		for (int cpuCycle = 0; cpuCycle < numberOfCpuCyclesPerBatch; cpuCycle++)
-			batchTicks += cpu_->Tick();
+			batchTicks += emulatorData_->cpu.Tick();
 		totalTicks += batchTicks;
 
-		keypad_->SetKeys(keys);
-		display_->Tick(batchTicks);
-		timer_->Tick(batchTicks);
-		sound_->Tick(batchTicks);
+		emulatorData_->keypad.SetKeys(keys);
+		emulatorData_->display.Tick(batchTicks);
+		emulatorData_->timer.Tick(batchTicks);
+		emulatorData_->sound.Tick(batchTicks);
 	}
 
 	// Slow down to match the correct CPU speed.

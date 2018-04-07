@@ -15,11 +15,6 @@ Keypad::Keypad(IO &io)
 
 		if (buttonKeys_)
 		{
-			/*if (start_) r &= ~8u;
-			if (select_) r &= ~4u;
-			if (b_) r &= ~2u;
-			if (a_) r &= ~1u;*/
-
 			if (keys_[Keys::Start]) r &= ~8u;
 			if (keys_[Keys::Select]) r &= ~4u;
 			if (keys_[Keys::B]) r &= ~2u;
@@ -27,11 +22,6 @@ Keypad::Keypad(IO &io)
 		}
 		if (directionKeys_)
 		{
-			/*if (down_) r &= ~8u;
-			if (up_) r &= ~4u;
-			if (left_) r &= ~2u;
-			if (right_) r &= ~1u;*/
-
 			if (keys_[Keys::Down]) r &= ~8u;
 			if (keys_[Keys::Up]) r &= ~4u;
 			if (keys_[Keys::Left]) r &= ~2u;
@@ -46,13 +36,9 @@ Keypad::Keypad(IO &io)
 	});
 }
 
-Keypad::~Keypad()
+void Keypad::SetKeys(const KeypadKeys &keys)
 {
-}
-
-void Keypad::SetKeys(bool keys[8])
-{
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < keys_.size(); i++)
 		keys_[i] = keys[i];
 }
 

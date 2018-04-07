@@ -13,7 +13,6 @@ class Ram : public MemoryRegion
 {
 public:
 	Ram();
-	virtual ~Ram();
 
 	virtual uint16_t GetSize() const override;
 	virtual uint8_t Read(uint16_t offset) override;

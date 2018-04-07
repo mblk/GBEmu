@@ -69,10 +69,6 @@ Display::Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, Display
 	io_.Register("WX", 0x4B, [&]() { return wx_; }, [&](uint8_t v) { wx_ = v; });
 }
 
-Display::~Display()
-{
-}
-
 void Display::Tick(int ticksPassed)
 {
 	// CPU clock: 4.194304MHz

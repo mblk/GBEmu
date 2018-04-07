@@ -14,12 +14,6 @@ namespace GBEmu::Emulator
 Rom::Rom(Log &log)
 	:log_(log)
 {
-
-}
-
-Rom::~Rom()
-{
-
 }
 
 void Rom::Load(const std::string &filename)

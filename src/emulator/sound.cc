@@ -154,11 +154,6 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 	io_.Register("NR52", 0x26, []() { return 0; }, [](uint8_t v) {});
 }
 
-Sound::~Sound()
-{
-
-}
-
 void Sound::Tick(int consumedTicks)
 {
 	// CPU clock: 4.194304MHz

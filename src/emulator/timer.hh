@@ -13,7 +13,6 @@ class Timer
 {
 public:
 	Timer(Log &log, IO &io, Pic &pic);
-	virtual ~Timer();
 
 	void Tick(int ticksPassed);
 

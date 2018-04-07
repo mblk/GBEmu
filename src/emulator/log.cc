@@ -15,17 +15,13 @@ Log::Log(const std::string &filename)
 
 	stream_ << "Start" << std::endl;
 
-	//instructionFilter_ = 1539100; // Test 03
-	//instructionFilter_ = 3634579; // Test 04 somewhere
-
-	
 	mask_ = 0;
 	//mask_ |= LOG_INSTRUCTION;
 	//mask_ |= LOG_INTERRUPT;
 	//mask_ |= LOG_STATE;
 	//mask_ |= LOG_ROM;
 	//mask_ |= LOG_MEMORY;
-	mask_ |= LOG_IO;
+	//mask_ |= LOG_IO;
 	//mask_ |= LOG_PERIPHERAL;
 	//mask_ = 0xFF;
 }

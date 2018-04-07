@@ -10,7 +10,6 @@ class Dma
 {
 public:
 	Dma(IO &io, Memory &memory);
-	virtual ~Dma();
 
 	void Tick();
 

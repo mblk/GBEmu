@@ -11,6 +11,8 @@
 namespace GBEmu
 {
 
+// TODO clean up
+
 //const int SampleRate = 11025; // Samples per second
 //const int SampleRate = 22050; // Samples per second
 const int SampleRate = 44100; // Samples per second

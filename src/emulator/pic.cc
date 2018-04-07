@@ -29,10 +29,6 @@ Pic::Pic(Log &log, IO &io)
 	});
 }
 
-Pic::~Pic()
-{
-}
-
 void Pic::RaiseInterrupts(uint8_t mask)
 {
 	log_.Interrupt("Raise " + AsHexString(mask));

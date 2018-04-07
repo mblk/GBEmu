@@ -25,7 +25,6 @@ class Sound
 {
 public:
 	Sound(IO &io, SoundDevice &soundDevice);
-	virtual ~Sound();
 
 	void Tick(int consumedTicks);
 

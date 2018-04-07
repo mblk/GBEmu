@@ -1,17 +1,20 @@
 #pragma once
 
+#include <array>
+
 namespace GBEmu::Emulator
 {
 
 class IO;
 
+using KeypadKeys = std::array<bool, 8>;
+
 class Keypad
 {
 public:
 	Keypad(IO &io);
-	virtual ~Keypad();
 
-	void SetKeys(bool keys[8]);
+	void SetKeys(const KeypadKeys &keys);
 
 	enum Keys
 	{
@@ -26,7 +29,7 @@ public:
 	};
 
 private:
-	bool keys_[8];
+	KeypadKeys keys_;
 	bool buttonKeys_, directionKeys_;
 };
 

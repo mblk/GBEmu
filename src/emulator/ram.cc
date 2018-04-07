@@ -13,10 +13,6 @@ Ram::Ram()
 {
 }
 
-Ram::~Ram()
-{
-}
-
 uint16_t Ram::GetSize() const
 {
 	return size_;

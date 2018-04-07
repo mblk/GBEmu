@@ -11,25 +11,6 @@
 namespace GBEmu::Emulator
 {
 
-/*
-Zero Flag (Z):
-This bit is set when the result of a math operation
-is zero or two values match when using the CP instruction.
-
-Subtract Flag (N):
-This bit is set if a subtraction was performed in the
-last math instruction.
-
-Half Carry Flag (H):
-This bit is set if a carry occurred from the lower
-nibble in the last math operation.
-
-Carry Flag (C):
-This bit is set if a carry occurred from the last
-math operation or if register A is the smaller value
-when executing the CP instruction.
-*/
-
 Cpu::Cpu(Log &log, Memory &memory, IO &io, Pic &pic)
 	:log_(log),
 	memory_(memory),
@@ -1000,17 +981,6 @@ Cpu::Cpu(Log &log, Memory &memory, IO &io, Pic &pic)
 		r.pc = pop16();
 		interruptsEnabled_ = true;
 	});
-
-	RegisterIO();
-}
-
-Cpu::~Cpu()
-{
-}
-
-void Cpu::RegisterIO()
-{
-
 }
 
 void Cpu::Reset()
@@ -1042,6 +1012,11 @@ uint32_t Cpu::Tick()
 				log_.State("Wake up from Halt");
 			halted_ = false;
 		}
+
+		// xxx
+		// TODO mario stays in the halt state forever. whats wrong? possible something related to the display.
+		// xxx
+		halted_ = false;
 
 		ticks += 0; // TODO
 		return ticks;

@@ -14,7 +14,6 @@ class Rom : public MemoryRegion
 {
 public:
 	Rom(Log &log);
-	virtual ~Rom();
 
 	void Load(const std::string &filename);
 

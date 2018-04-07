@@ -1,5 +1,4 @@
 #include "emulator/emulator.hh"
-#include "emulator/keypad.hh"
 
 #include "sdldisplaybitmap.hh"
 #include "sdlsound.hh"
@@ -9,6 +8,7 @@
 #include <cassert>
 
 #include <string>
+#include <memory>
 
 #include <SDL.h>
 #undef main
@@ -92,7 +92,8 @@ int main(int argc, char **argv)
 
 	// Main loop.
 	bool running = true;
-	bool keys[8] = {};
+	GBEmu::Emulator::KeypadKeys keys = {};
+
 	while (running)
 	{
 		// Process SDL events.

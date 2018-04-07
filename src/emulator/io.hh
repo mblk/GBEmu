@@ -26,7 +26,6 @@ class IO : public MemoryRegion
 {
 public:
 	IO(Log &log);
-	virtual ~IO();
 
 	virtual uint16_t GetSize() const override { return size_; }
 	virtual uint8_t Read(uint16_t offset) override;

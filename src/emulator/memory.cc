@@ -13,11 +13,6 @@ Memory::Memory(Log &log)
 
 }
 
-Memory::~Memory()
-{
-
-}
-
 void Memory::Register(MemoryRegion *region, uint16_t base)
 {
 	assert(region);

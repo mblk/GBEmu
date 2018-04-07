@@ -51,10 +51,6 @@ Timer::Timer(Log &log, IO &io, Pic &pic)
 	});
 }
 
-Timer::~Timer()
-{
-}
-
 void Timer::Tick(int ticksPassed)
 {
 	// CPU clock: 4.194304MHz

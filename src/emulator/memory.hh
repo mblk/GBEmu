@@ -28,7 +28,6 @@ class Memory
 {
 public:
 	Memory(Log &log);
-	virtual ~Memory();
 
 	void Register(MemoryRegion *region, uint16_t base);
 

@@ -12,7 +12,6 @@ class Serial
 {
 public:
 	Serial(Log &log, IO &io);
-	virtual ~Serial();
 
 	void Tick();
 

@@ -71,7 +71,7 @@ struct Registers
 	}
 };
 
-static_assert(sizeof(GBEmu::Emulator::Registers) == 12);
+static_assert(sizeof(Registers) == 12);
 
 using InstructionHandler = std::function<void(uint8_t*)>;
 using InstructionHandler2 = std::function<void(uint8_t, uint8_t*)>;
@@ -89,7 +89,6 @@ class Cpu
 {
 public:
 	Cpu(Log &log, Memory &memory, IO &io, Pic &pic);
-	virtual ~Cpu();
 
 	void Reset();
 	uint32_t Tick();
@@ -100,8 +99,6 @@ private:
 	uint8_t Pop8();
 	uint16_t Pop16();
 	void Bitops(uint8_t opcode);
-
-	void RegisterIO();
 
 private:
 	Log & log_;
@@ -115,7 +112,6 @@ private:
 	std::array<Instruction, 256> instructions_;
 	std::array<Instruction, 256> instructionsCB_;
 	std::array<Instruction, 256> instructions10_;
-
 };
 
 }

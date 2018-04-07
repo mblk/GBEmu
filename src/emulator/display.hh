@@ -40,8 +40,7 @@ class Display
 {
 public:
 	Display(IO &io, Pic &pic, Ram &vram, SpriteAttributeTable &oam, DisplayBitmap *debugBitmap, DisplayBitmap &displayBitmap);
-	virtual ~Display();
-
+	
 	void Tick(int ticksPassed);
 
 	static void GetSize(int *width, int *height)
