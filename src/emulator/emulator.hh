@@ -27,7 +27,7 @@ public:
 
 private:
 	struct EmulatorData;
-	const std::unique_ptr<EmulatorData> emulatorData_;
+	const std::unique_ptr<EmulatorData, void(*)(EmulatorData*)> emulatorData_;
 	std::chrono::high_resolution_clock::time_point prevTime_;
 };
 

@@ -12,27 +12,22 @@ SdlDisplayBitmap::SdlDisplayBitmap(SDL_Renderer *renderer, int width, int height
 	:renderer_(renderer),
 	width_(width),
 	height_(height),
+	texture_(nullptr, nullptr),
 	pixels_(nullptr),
 	pitch_(0)
 {
+	// Assert before trying to initialize the unique_ptr.
 	assert(renderer);
 	assert(width > 0);
 	assert(height > 0);
 
-	texture_ = SDL_CreateTexture(renderer_,
-		SDL_PIXELFORMAT_BGRA8888,
-		SDL_TEXTUREACCESS_STREAMING,
-		width,
-		height);
-}
-
-SdlDisplayBitmap::~SdlDisplayBitmap()
-{
-	if (texture_)
-	{
-		SDL_DestroyTexture(texture_);
-		texture_ = nullptr;
-	}
+	texture_ = std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)>(
+		SDL_CreateTexture(renderer_,
+			SDL_PIXELFORMAT_BGRA8888,
+			SDL_TEXTUREACCESS_STREAMING,
+			width,
+			height),
+		SDL_DestroyTexture);
 }
 
 void SdlDisplayBitmap::Clear()
@@ -40,7 +35,7 @@ void SdlDisplayBitmap::Clear()
 	void *pixels = nullptr;
 	int pitch = 0;
 
-	SDL_LockTexture(texture_, nullptr, &pixels, &pitch);
+	SDL_LockTexture(texture_.get(), nullptr, &pixels, &pitch);
 	assert(pixels);
 	assert(pitch);
 
@@ -69,8 +64,8 @@ void SdlDisplayBitmap::Present()
 {
 	if (!pixels_) return;
 
-	SDL_UnlockTexture(texture_);
-	SDL_RenderCopy(renderer_, texture_, NULL, NULL);
+	SDL_UnlockTexture(texture_.get());
+	SDL_RenderCopy(renderer_, texture_.get(), NULL, NULL);
 	SDL_RenderPresent(renderer_);
 
 	pixels_ = nullptr;

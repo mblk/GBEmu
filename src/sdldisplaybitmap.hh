@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "emulator/display.hh"
 
 struct SDL_Renderer;
@@ -12,7 +14,6 @@ class SdlDisplayBitmap : public Emulator::DisplayBitmap
 {
 public:
 	SdlDisplayBitmap(SDL_Renderer *renderer, int width, int height);
-	virtual ~SdlDisplayBitmap();
 
 	virtual void Clear() override;
 	virtual void DrawPixel(uint8_t x, uint8_t y, uint8_t color) override;
@@ -23,7 +24,7 @@ private:
 	const int width_;
 	const int height_;
 
-	SDL_Texture * texture_;
+	std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)> texture_;
 
 	uint8_t *pixels_;
 	uint16_t pitch_;

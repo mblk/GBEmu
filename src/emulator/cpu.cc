@@ -1016,7 +1016,7 @@ uint32_t Cpu::Tick()
 		// xxx
 		// TODO mario stays in the halt state forever. whats wrong? possible something related to the display.
 		// xxx
-		halted_ = false;
+		//halted_ = false;
 
 		ticks += 0; // TODO
 		return ticks;

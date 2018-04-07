@@ -68,10 +68,10 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize Emulator.
-	auto sdlDebugBitmap = showDebugWindow ? new GBEmu::SdlDisplayBitmap(debugRenderer, 256, 256) : nullptr;
-	auto sdlDisplayBitmap = new GBEmu::SdlDisplayBitmap(displayRenderer, originalDisplayWidth, originalDisplayHeight);
-	auto sdlSound = new GBEmu::SdlSound();
-	auto emulator = new GBEmu::Emulator::Emulator("log.txt", romFileName, sdlDebugBitmap, *sdlDisplayBitmap, *sdlSound);
+	auto sdlDebugBitmap = showDebugWindow ? std::make_unique<GBEmu::SdlDisplayBitmap>(debugRenderer, 256, 256) : nullptr;
+	auto sdlDisplayBitmap = std::make_unique<GBEmu::SdlDisplayBitmap>(displayRenderer, originalDisplayWidth, originalDisplayHeight);
+	auto sdlSound = std::make_unique<GBEmu::SdlSound>();
+	auto emulator = std::make_unique<GBEmu::Emulator::Emulator>("log.txt", romFileName, sdlDebugBitmap.get(), *sdlDisplayBitmap, *sdlSound);
 
 	// Helper function that translate sdl keys to emulator keys.
 	auto TranslateKeyCode = [](SDL_Keycode keyCode) -> int
