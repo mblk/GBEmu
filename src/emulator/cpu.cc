@@ -1013,12 +1013,7 @@ uint32_t Cpu::Tick()
 			halted_ = false;
 		}
 
-		// xxx
-		// TODO mario stays in the halt state forever. whats wrong? possible something related to the display.
-		// xxx
-		//halted_ = false;
-
-		ticks += 0; // TODO
+		ticks += 1; // TODO
 		return ticks;
 	}
 
@@ -1042,7 +1037,7 @@ uint32_t Cpu::Tick()
 			if (log_.InterruptEnabled())
 				log_.Interrupt("Handle " + AsHexString(interruptMask) + " at " + AsHexString(regs_.pc));
 
-			ticks += 0; // TODO
+			ticks += 1; // TODO
 			return ticks;
 		}
 	}
