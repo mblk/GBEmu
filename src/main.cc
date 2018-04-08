@@ -1,5 +1,4 @@
 #include "emulator/emulator.hh"
-
 #include "sdldisplaybitmap.hh"
 #include "sdlsound.hh"
 
@@ -58,6 +57,7 @@ int main(int argc, char **argv)
 
 	SDL_CreateWindowAndRenderer(displayWidth, displayHeight, 0, &displayWindow, &displayRenderer);
 	SDL_SetWindowPosition(displayWindow, screenWidth / 2 - displayWidth / 2, screenHeight / 2 - displayHeight / 2);
+	SDL_SetWindowTitle(displayWindow, "GBEmu");
 
 	if (showDebugWindow)
 	{
