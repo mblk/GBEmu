@@ -157,31 +157,6 @@ void Rom::Write(uint16_t offset, uint8_t data)
 	{
 		assert(0);
 	}
-
-
-
-
-	/*
-	if (offset < 0x2000)
-	{
-		printf("Warning: Write %02X to ROM at %04X\n", data, offset);
-		//assert(0);
-	}
-	// Memory Bank Controller 1 - Bank Select?
-	else if (offset >= 0x2000 && offset <= 0x4000)
-	{
-		uint8_t bank = data & 0x1F;
-
-		printf("Select ROM bank %u\n", bank);
-
-		assert(bank == 0 || bank == 1);
-	}
-	else
-	{
-
-	}*/
-
-	//data_[offset] = data;
 }
 
 }
