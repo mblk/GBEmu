@@ -260,11 +260,6 @@ void Display::DrawLineTile(uint16_t tileDataOffset, uint8_t destX, uint8_t destY
 	}
 }
 
-
-
-
-
-
 void Display::DrawDebug()
 {
 	if (!debugBitmap_) return;
