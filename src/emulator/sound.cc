@@ -31,12 +31,14 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 
 	c1ticks_(0),
 	c1freq_(0),
+	c1initialVolume_(0),
 	c1volume_(0),
 	c1direction_(0),
 	c1numberOfSweep_(0),
 
 	c2ticks_(0),
 	c2freq_(0),
+	c2initialVolume_(0),
 	c2volume_(0),
 	c2direction_(0),
 	c2numberOfSweep_(0)
@@ -54,12 +56,19 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 	io_.Register("NR12", 0x12, [&]() { return nr12_; }, [&](uint8_t v) {
 		nr12_ = v;
 
-		c1volume_ = (nr12_ & 0xF0) >> 4;
+		c1initialVolume_ = (nr12_ & 0xF0) >> 4;
 		c1direction_ = (nr12_ & 0x08) >> 3;
 		c1numberOfSweep_ = nr12_ & 0x07;
+
 	});
 	io_.Register("NR13", 0x13, [&]() { return nr13_; }, [&](uint8_t v) {
 		nr13_ = v;
+
+		int x = ((nr14_ & 0x7) << 8) | nr13_;
+		int freq = 131072 / (2048 - x);
+
+		soundDevice_.SetFrequency1(freq);
+
 	});
 	io_.Register("NR14", 0x14, [&]() { return nr14_; }, [&](uint8_t v) {
 		nr14_ = v;
@@ -68,12 +77,14 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 		{
 			c1ticks_ = 0;
 
-			int x = ((nr14_ & 0x7) << 8) | nr13_;
-			int freq = 131072 / (2048 - x);
-
-			soundDevice_.SetFrequency1(freq);
+			c1volume_ = c1initialVolume_;
 			soundDevice_.SetVolume1(c1volume_);
 		}
+
+		int x = ((nr14_ & 0x7) << 8) | nr13_;
+		int freq = 131072 / (2048 - x);
+		soundDevice_.SetFrequency1(freq);
+
 	});
 
 	// Sound Channel 2
@@ -83,12 +94,19 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 	io_.Register("NR22", 0x17, [&]() { return nr22_; }, [&](uint8_t v) {
 		nr22_ = v;
 
-		c2volume_ = (nr22_ & 0xF0) >> 4;
+		c2initialVolume_ = (nr22_ & 0xF0) >> 4;
 		c2direction_ = (nr22_ & 0x08) >> 3;
 		c2numberOfSweep_ = nr22_ & 0x07;
+
 	});
 	io_.Register("NR23", 0x18, [&]() { return nr23_; }, [&](uint8_t v) {
 		nr23_ = v;
+
+		int x = ((nr24_ & 0x7) << 8) | nr23_;
+		int freq = 131072 / (2048 - x);
+
+		soundDevice_.SetFrequency2(freq);
+
 	});
 	io_.Register("NR24", 0x19, [&]() { return nr24_; }, [&](uint8_t v) {
 		nr24_ = v;
@@ -96,13 +114,15 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 		if (nr24_ & 0x80) // Initial?
 		{
 			c2ticks_ = 0;
-			
-			int x = ((nr24_ & 0x7) << 8) | nr23_;
-			int freq = 131072 / (2048 - x);
 
-			soundDevice_.SetFrequency2(freq);
-			soundDevice_.SetVolume2(c1volume_);
+			c2volume_ = c2initialVolume_;
+			soundDevice_.SetVolume2(c2volume_);
 		}
+			
+		int x = ((nr24_ & 0x7) << 8) | nr23_;
+		int freq = 131072 / (2048 - x);
+		soundDevice_.SetFrequency2(freq);
+
 	});
 
 	// Sound Channel 3
@@ -169,16 +189,17 @@ void Sound::Tick(int consumedTicks)
 			c1ticks_ = 0;
 
 			if (c1direction_) {
-				if (c1volume_ < 15) c1volume_++;
+				//if (c1volume_ < 15) c1volume_++;
+				c1volume_ = (c1volume_ + 1) % 16;
 			}
 			else {
-				if (c1volume_) c1volume_--;
+				//if (c1volume_) c1volume_--;
+				c1volume_ = (c1volume_ - 1) % 16;
 			}
 
 			soundDevice_.SetVolume1(c1volume_);
 		}
 	}
-
 
 	if (c2numberOfSweep_)
 	{
@@ -188,10 +209,12 @@ void Sound::Tick(int consumedTicks)
 			c2ticks_ = 0;
 
 			if (c2direction_) {
-				if (c2volume_ < 15) c2volume_++;
+				//if (c2volume_ < 15) c2volume_++;
+				c2volume_ = (c2volume_ + 1) % 16;
 			}
 			else {
-				if (c2volume_) c2volume_--;
+				//if (c2volume_) c2volume_--;
+				c2volume_ = (c2volume_ - 1) % 16;
 			}
 
 			soundDevice_.SetVolume2(c2volume_);

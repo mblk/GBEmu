@@ -52,12 +52,14 @@ private:
 
 	int c1ticks_;
 	int c1freq_;
+	int c1initialVolume_;
 	int c1volume_;
 	int c1direction_;
 	int c1numberOfSweep_;
 
 	int c2ticks_;
 	int c2freq_;
+	int c2initialVolume_;
 	int c2volume_;
 	int c2direction_;
 	int c2numberOfSweep_;

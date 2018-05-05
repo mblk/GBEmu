@@ -18,7 +18,7 @@ namespace GBEmu
 const int SampleRate = 44100; // Samples per second
 
 //const int SampleSize = 4096;
-const int SampleSize = 256;
+const int SampleSize = 1;
 
 int TargetFreq1 = 150;
 int TargetVolume1 = 0;
@@ -44,7 +44,7 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 	int CycleLength2 = SampleRate / TargetFreq2;
 	int CycleLength3 = SampleRate / TargetFreq3 / 32;
 
-	//printf("callback %p %d\n", stream, len);
+	//printf("callback %d\n", len);
 
 	int8_t *stream = reinterpret_cast<int8_t*>(rawStream);
 
@@ -109,7 +109,6 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 			}
 
 			int8_t ss = reinterpret_cast<int8_t&>(us);
-
 			s += ss;
 			//s += ss - 8;
 
@@ -152,7 +151,7 @@ SdlSound::SdlSound()
 	SDL_AudioSpec want = {}, have = {};
 
 	want.freq = SampleRate;
-	want.format = AUDIO_S8; // AUDIO_U8
+	want.format = AUDIO_S8;
 	want.channels = 1;
 	want.samples = SampleSize;
 	want.callback = SDL_AudioCallback;
