@@ -27,8 +27,12 @@ public:
 
 private:
 	struct EmulatorData;
+	// Must specify a custom deleter function as EmulatorData is incomplete.
 	const std::unique_ptr<EmulatorData, void(*)(EmulatorData*)> emulatorData_;
+
 	std::chrono::high_resolution_clock::time_point prevTime_;
+	std::chrono::high_resolution_clock::time_point statPrevTime_;
+	int statTicks_;
 };
 
 }

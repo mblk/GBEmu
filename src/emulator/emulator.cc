@@ -76,22 +76,22 @@ Emulator::Emulator(
 	DisplayBitmap * const debugBitmap,
 	DisplayBitmap &displayBitmap,
 	SoundDevice &soundDevice)
-	/*:emulatorData_(std::make_unique<EmulatorData>(
-		logFileName, romFileName, debugBitmap,
-		displayBitmap, soundDevice)),*/
-
 	:emulatorData_(new EmulatorData(logFileName, romFileName, debugBitmap, displayBitmap, soundDevice),
 		[](EmulatorData *ed) { delete ed; }),
-
-	prevTime_(std::chrono::high_resolution_clock::now())
+	prevTime_(std::chrono::high_resolution_clock::now()),
+	statPrevTime_(std::chrono::high_resolution_clock::now()),
+	statTicks_(0)
 {
 }
 
 void Emulator::Tick(const KeypadKeys &keys)
 {
-	const int numberOfBatchesToSimulate = 4;
+	//const int numberOfBatchesToSimulate = 1024;
+	const int numberOfBatchesToSimulate = 16;
 	const int numberOfCpuCyclesPerBatch = 4;
-	const int totalNumberOfCycles = numberOfBatchesToSimulate * numberOfCpuCyclesPerBatch;
+
+	const double targetTicksPerSecond = 4194304.0; // 4.194304MHz
+	const double targetTicksDuration = 1.0 / targetTicksPerSecond; // ~238ns
 
 	// Run emulator ticks.
 	int totalTicks = 0;
@@ -111,18 +111,39 @@ void Emulator::Tick(const KeypadKeys &keys)
 	// Slow down to match the correct CPU speed.
 	for (;;)
 	{
-		auto now = std::chrono::high_resolution_clock::now();
+		const auto now = std::chrono::high_resolution_clock::now();
+		const auto currentDt = std::chrono::duration<double, std::nano>(now - prevTime_);
+		const auto targetDt = std::chrono::duration<double, std::nano>(
+			static_cast<double>(totalTicks) * targetTicksDuration * 1000.0 * 1000.0 * 1000.0);
 
-		// CPU clock: 4.194304MHz
-		const long long nsPerTick = 1000000000 / 4194304; // ~238
-		const long long targetTimeNs = nsPerTick * totalTicks;
-		const auto deltaTime = now - prevTime_;
-		const long long currentTimeNs = deltaTime.count();
-		const long long timeToSleep = targetTimeNs - currentTimeNs;
-
-		if (timeToSleep < 0) {
-			prevTime_ = now;
+		if (currentDt > targetDt)
+		{
+			// Must use long long here as that's what high_resolution_clock is using internally.
+			// Maybe there's a cleaner way to do this.
+			prevTime_ = now - std::chrono::nanoseconds(static_cast<long long>((currentDt - targetDt).count()));
 			break;
+		}
+	}
+
+	// Stats
+	{
+		const auto now = std::chrono::high_resolution_clock::now();
+		const auto dt = std::chrono::duration<double>(now - statPrevTime_);
+
+		double dtSeconds = dt.count();
+
+		statTicks_ += totalTicks;
+		
+		if (dtSeconds > 2.5)
+		{
+			const double ticksPerSecond = double(statTicks_) / dtSeconds;
+			const double absError = ticksPerSecond - targetTicksPerSecond;
+			const double relError = absError / targetTicksPerSecond;
+
+			printf("dt %.3lf ticks %d tts %.3lf absError %.3lf relError %.3lf%%\n", dtSeconds, statTicks_, ticksPerSecond, absError, relError*100.0);
+
+			statPrevTime_ = now;
+			statTicks_ = 0;
 		}
 	}
 }
