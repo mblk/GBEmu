@@ -19,6 +19,7 @@ public:
 	virtual void SetPattern3(uint8_t *pattern) = 0;
 	virtual void SetPlayback3(bool playback) = 0;
 
+	virtual void Tick(int consumedTicks) = 0;
 };
 
 class Sound

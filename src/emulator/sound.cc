@@ -180,7 +180,6 @@ void Sound::Tick(int consumedTicks)
 	const int c1TickOverflow = 4194304 / 64; // 64 Hz
 	const int c2TickOverflow = 4194304 / 64; // 64 Hz
 
-
 	if (c1numberOfSweep_)
 	{
 		c1ticks_ += consumedTicks;
@@ -189,11 +188,9 @@ void Sound::Tick(int consumedTicks)
 			c1ticks_ = 0;
 
 			if (c1direction_) {
-				//if (c1volume_ < 15) c1volume_++;
 				c1volume_ = (c1volume_ + 1) % 16;
 			}
 			else {
-				//if (c1volume_) c1volume_--;
 				c1volume_ = (c1volume_ - 1) % 16;
 			}
 
@@ -209,11 +206,9 @@ void Sound::Tick(int consumedTicks)
 			c2ticks_ = 0;
 
 			if (c2direction_) {
-				//if (c2volume_ < 15) c2volume_++;
 				c2volume_ = (c2volume_ + 1) % 16;
 			}
 			else {
-				//if (c2volume_) c2volume_--;
 				c2volume_ = (c2volume_ - 1) % 16;
 			}
 
@@ -221,6 +216,7 @@ void Sound::Tick(int consumedTicks)
 		}
 	}
 
+	soundDevice_.Tick(consumedTicks);
 }
 
 }
