@@ -136,9 +136,31 @@ Sound::Sound(IO &io, SoundDevice &soundDevice)
 	});
 	io_.Register("NR32", 0x1C, [&]() { return nr32_; }, [&](uint8_t v) {
 		nr32_ = v;
+
+		//if (nr34_ & 0x80)
+		{
+			int x = ((nr34_ & 0x7) << 8) | nr33_;
+			int freq = 65536 / (2048 - x);
+			int volume = (nr32_ & 0x60) >> 5;
+
+			soundDevice_.SetFrequency3(freq);
+			soundDevice_.SetVolume3(volume);
+			soundDevice_.SetPattern3(pattern_);
+		}
 	});
 	io_.Register("NR33", 0x1D, [&]() { return nr33_; }, [&](uint8_t v) {
 		nr33_ = v;
+
+		//if (nr34_ & 0x80)
+		{
+			int x = ((nr34_ & 0x7) << 8) | nr33_;
+			int freq = 65536 / (2048 - x);
+			int volume = (nr32_ & 0x60) >> 5;
+
+			soundDevice_.SetFrequency3(freq);
+			soundDevice_.SetVolume3(volume);
+			soundDevice_.SetPattern3(pattern_);
+		}
 	});
 	io_.Register("NR34", 0x1E, [&]() { return nr34_; }, [&](uint8_t v) {
 		nr34_ = v;

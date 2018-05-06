@@ -106,7 +106,8 @@ public:
 			return 0;
 		}
 
-		const int cycleLength = SampleRate / frequency_ / 32;
+		int cycleLength = SampleRate / frequency_ / 32;
+		if (cycleLength < 1) cycleLength = 1;
 		cycle_ = (cycle_ + 1) % cycleLength;
 
 		if (cycle_ == 0)
