@@ -23,8 +23,8 @@ void Rom::Load(const std::string &filename)
 
 	if (!stream.is_open() || stream.bad())
 	{
-        return;
-		//throw new std::exception("unable to open rom file");
+		printf("unable to open rom file\n");
+		throw new std::runtime_error("unable to open rom file");
 	}
 	
 	// Get file size.

@@ -18,7 +18,7 @@ namespace GBEmu
 const int SampleRate = 44100; // Samples per second
 
 //const int SampleSize = 4096;
-const int SampleSize = 1;
+const int SampleSize = 512;
 
 int TargetFreq1 = 150;
 int TargetVolume1 = 0;
@@ -34,17 +34,40 @@ int CurrentCycleIndex1 = 0;
 int CurrentCycleIndex2 = 0;
 int CurrentCycleIndex3 = 0;
 
+const int XFreq = 500;
+int XCycle = 0;
+
+void SDL_AudioCallback_(void *userdata, uint8_t* rawStream, int len)
+{
+	int8_t *stream = reinterpret_cast<int8_t*>(rawStream);
+
+	const int XCycleLength = SampleRate / XFreq;
+
+	//printf("cb %d\n", len);
+
+	for(int i=0; i<len; i++)
+	{
+		XCycle++;
+		if (XCycle > XCycleLength)
+			XCycle = 0;
+
+		int s = 0;
+		if (XCycle > XCycleLength / 2)
+			s = 10;
+		else
+			s = -10;
+
+		stream[i] = int8_t(s);
+	}
+}
+
 void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 {
-	//printf("pattern: ");
-	//for (int i = 0; i < 16; i++) printf("%02X ", Pattern3[i]);
-	//printf("\n");
-
 	int CycleLength1 = SampleRate / TargetFreq1;
 	int CycleLength2 = SampleRate / TargetFreq2;
 	int CycleLength3 = SampleRate / TargetFreq3 / 32;
 
-	//printf("callback %d\n", len);
+//	printf("callback %d\n", len);
 
 	int8_t *stream = reinterpret_cast<int8_t*>(rawStream);
 
@@ -143,10 +166,11 @@ void SDL_AudioCallback(void *userdata, uint8_t* rawStream, int len)
 SdlSound::SdlSound()
 	:deviceId_(0)
 {
-	//for (int i = 0; i < SDL_GetNumAudioDevices(0); i++) {
-	//	const char *name = SDL_GetAudioDeviceName(i, 0);
-	//	printf("Audio %d: '%s'\n", i, name);
-	//}
+//#ifndef __EMSCRIPTEN__
+	for (int i = 0; i < SDL_GetNumAudioDevices(0); i++) {
+		const char *name = SDL_GetAudioDeviceName(i, 0);
+		printf("Audio %d: '%s'\n", i, name);
+	}
 
 	SDL_AudioSpec want = {}, have = {};
 
@@ -156,13 +180,23 @@ SdlSound::SdlSound()
 	want.samples = SampleSize;
 	want.callback = SDL_AudioCallback;
 
+	printf("OpenAudio ...\n");
 	deviceId_ = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+	printf("deviceId: %u\n", deviceId_);
 	if (deviceId_ <= 0) {
 		printf("SDL_OpenAudioDevice failed: %s\n", SDL_GetError());
-		assert(0);
+		//assert(0);
 	}
+	else
+	{
+		printf("Freq: %u\n", have.freq);
+		printf("Format: %u (%u)\n", have.format, AUDIO_S8);
+		printf("Channels: %u\n", have.channels);
+		printf("Samples: %u\n", have.samples);
 
-	SDL_PauseAudioDevice(deviceId_, 0); // unpause
+		SDL_PauseAudioDevice(deviceId_, 0); // unpause
+	}
+//#endif
 }
 
 SdlSound::~SdlSound()
@@ -177,7 +211,7 @@ SdlSound::~SdlSound()
 void SdlSound::SetFrequency1(int freq)
 {
 	if (freq < 10) freq = 10;
-	if (freq > SampleRate / 2) freq = SampleRate / 2; // ?
+	//if (freq > SampleRate / 2) freq = SampleRate / 2; // ?
 
 	TargetFreq1 = freq;
 }
@@ -193,7 +227,7 @@ void SdlSound::SetVolume1(int volume)
 void SdlSound::SetFrequency2(int freq)
 {
 	if (freq < 10) freq = 10;
-	if (freq > SampleRate / 2) freq = SampleRate / 2; // ?
+	//if (freq > SampleRate / 2) freq = SampleRate / 2; // ?
 
 	TargetFreq2 = freq;
 }
@@ -209,7 +243,7 @@ void SdlSound::SetVolume2(int volume)
 void SdlSound::SetFrequency3(int freq)
 {
 	if (freq < 10) freq = 10;
-	if (freq > SampleRate / 2) freq = SampleRate / 2; // ?
+	//if (freq > SampleRate / 2) freq = SampleRate / 2; // ?
 
 	TargetFreq3 = freq;
 }

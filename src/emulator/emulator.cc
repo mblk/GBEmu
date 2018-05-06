@@ -86,29 +86,32 @@ Emulator::Emulator(
 
 void Emulator::Tick(const KeypadKeys &keys)
 {
-	//const int numberOfBatchesToSimulate = 1024;
-	const int numberOfBatchesToSimulate = 16;
 	const int numberOfCpuCyclesPerBatch = 4;
 
 	const double targetTicksPerSecond = 4194304.0; // 4.194304MHz
 	const double targetTicksDuration = 1.0 / targetTicksPerSecond; // ~238ns
 
+	const int ticksPerFrame = 4194304 / 60;
+
 	// Run emulator ticks.
 	int totalTicks = 0;
-	for(int batch = 0; batch < numberOfBatchesToSimulate; batch++)
 	{
-		int batchTicks = 0;
-		for (int cpuCycle = 0; cpuCycle < numberOfCpuCyclesPerBatch; cpuCycle++)
-			batchTicks += emulatorData_->cpu.Tick();
-		totalTicks += batchTicks;
+		while(totalTicks < ticksPerFrame)
+		{
+			int batchTicks = 0;
+			for (int cpuCycle = 0; cpuCycle < numberOfCpuCyclesPerBatch; cpuCycle++)
+				batchTicks += emulatorData_->cpu.Tick();
+			totalTicks += batchTicks;
 
-		emulatorData_->keypad.SetKeys(keys);
-		emulatorData_->display.Tick(batchTicks);
-		emulatorData_->timer.Tick(batchTicks);
-		emulatorData_->sound.Tick(batchTicks);
+			emulatorData_->keypad.SetKeys(keys);
+			emulatorData_->display.Tick(batchTicks);
+			emulatorData_->timer.Tick(batchTicks);
+			emulatorData_->sound.Tick(batchTicks);
+		}
 	}
 
 	// Slow down to match the correct CPU speed.
+	#if 1
 	for (;;)
 	{
 		const auto now = std::chrono::high_resolution_clock::now();
@@ -124,6 +127,7 @@ void Emulator::Tick(const KeypadKeys &keys)
 			break;
 		}
 	}
+	#endif
 
 	// Stats
 	{
@@ -140,7 +144,7 @@ void Emulator::Tick(const KeypadKeys &keys)
 			const double absError = ticksPerSecond - targetTicksPerSecond;
 			const double relError = absError / targetTicksPerSecond;
 
-			printf("dt %.3lf ticks %d tts %.3lf absError %.3lf relError %.3lf%%\n", dtSeconds, statTicks_, ticksPerSecond, absError, relError*100.0);
+			printf("dt %.3lf ticks %d tps %.3lf absError %.3lf relError %.3lf%%\n", dtSeconds, statTicks_, ticksPerSecond, absError, relError*100.0);
 
 			statPrevTime_ = now;
 			statTicks_ = 0;
