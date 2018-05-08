@@ -111,7 +111,7 @@ void Emulator::Tick(const KeypadKeys &keys)
 	}
 
 	// Slow down to match the correct CPU speed.
-	#if 1
+	#ifndef __EMSCRIPTEN__
 	for (;;)
 	{
 		const auto now = std::chrono::high_resolution_clock::now();
