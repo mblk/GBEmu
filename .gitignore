@@ -35,6 +35,18 @@
 *.tlog
 *.idb
 
+# Build directories
+build/*
+build_em/*
+
+# ROMs
+*.gb
+rom/*
+roms/*
+
+# VSCode settings
+.vscode/
+
 
 
 ## Ignore Visual Studio temporary files, build results, and
