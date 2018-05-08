@@ -164,12 +164,13 @@ private:
 
 private:
 	constexpr static int SampleRate = 44100;
-	constexpr static int SampleSize = 4096; 
+	//constexpr static int SampleSize = 4096;
+	constexpr static int SampleSize = 16384;
 
 	uint32_t deviceId_;
 	int ticks_;
 
-	SampleRingBuffer<int8_t, SampleSize * 10> sampleBuffer_;
+	SampleRingBuffer<int8_t, SampleSize * 4> sampleBuffer_;
 
 	SoundChannel<SampleRate> channel1_;
 	SoundChannel<SampleRate> channel2_;
