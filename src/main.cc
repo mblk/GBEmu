@@ -9,6 +9,7 @@
 #include <string>
 #include <memory>
 #include <thread>
+#include <chrono>
 
 #include <SDL.h>
 #undef main
@@ -21,9 +22,24 @@ GBEmu::Emulator::KeypadKeys keys = {};
 std::unique_ptr<GBEmu::Emulator::Emulator> emulator = {};
 bool running = true;
 
-// Helper function that translates sdl keys to emulator keys.
-auto TranslateKeyCode = [](SDL_Keycode keyCode) -> int
+std::chrono::high_resolution_clock::time_point mainPrevTime_;
+int mainCalls_ = 0;
+
+void mainloop(void *arg)
 {
+	// Statistics.
+	const auto now = std::chrono::high_resolution_clock::now();
+	const auto dt = std::chrono::duration<double>(now - mainPrevTime_).count();
+	mainCalls_++;
+	if (dt > 2.5)
+	{
+		printf("mainloop %.1lf Hz\n", static_cast<double>(mainCalls_) / dt);
+		mainPrevTime_ = now;
+		mainCalls_ = 0;
+	}
+
+// Helper function that translates sdl keys to emulator keys.
+	auto TranslateKeyCode = [](SDL_Keycode keyCode) -> int {
 	switch (keyCode)
 	{
 	case SDLK_a: return GBEmu::Emulator::Keypad::Left;
@@ -37,10 +53,6 @@ auto TranslateKeyCode = [](SDL_Keycode keyCode) -> int
 	default: return -1;
 	}
 };
-
-void mainloop(void *arg)
-{
-	//printf("mainloop\n");
 
 	// Process SDL events.
 	SDL_Event event;
@@ -160,9 +172,11 @@ int main(int argc, char **argv)
 
 	// Main loop.
 #ifdef __EMSCRIPTEN__
-	emscripten_set_main_loop_arg(mainloop, nullptr, -1, 1);
+	int targetFps = -1;
+	int simulateInfiniteLoop = 1;
+	emscripten_set_main_loop_arg(mainloop, nullptr, targetFps, simulateInfiniteLoop);
 #else
-	while(running)
+	while (running)
 	{
 		mainloop(nullptr);
 	}
