@@ -76,11 +76,14 @@ Emulator::Emulator(
 	DisplayBitmap * const debugBitmap,
 	DisplayBitmap &displayBitmap,
 	SoundDevice &soundDevice)
-	:emulatorData_(new EmulatorData(logFileName, romFileName, debugBitmap, displayBitmap, soundDevice),
-		[](EmulatorData *ed) { delete ed; }),
+	:emulatorData_(std::make_unique<EmulatorData>(logFileName, romFileName, debugBitmap, displayBitmap, soundDevice)),
 	prevTime_(std::chrono::high_resolution_clock::now()),
 	statPrevTime_(std::chrono::high_resolution_clock::now()),
 	statTicks_(0)
+{
+}
+
+Emulator::~Emulator()
 {
 }
 

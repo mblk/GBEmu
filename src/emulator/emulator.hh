@@ -22,13 +22,13 @@ public:
 		DisplayBitmap * const debugBitmap,
 		DisplayBitmap &displayBitmap,
 		SoundDevice &soundDevice);
+	~Emulator();
 
 	void Tick(const KeypadKeys &keys);
 
 private:
 	struct EmulatorData;
-	// Must specify a custom deleter function as EmulatorData is incomplete.
-	const std::unique_ptr<EmulatorData, void(*)(EmulatorData*)> emulatorData_;
+	const std::unique_ptr<EmulatorData> emulatorData_;
 
 	std::chrono::high_resolution_clock::time_point prevTime_;
 	std::chrono::high_resolution_clock::time_point statPrevTime_;
