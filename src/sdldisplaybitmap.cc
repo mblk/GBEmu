@@ -8,8 +8,9 @@
 namespace GBEmu
 {
 
-SdlDisplayBitmap::SdlDisplayBitmap(SDL_Renderer *renderer, int width, int height)
+SdlDisplayBitmap::SdlDisplayBitmap(SDL_Renderer *renderer, const SDL_Rect& presentRect, int width, int height)
 	:renderer_(renderer),
+	presentRect_(presentRect),
 	width_(width),
 	height_(height),
 	texture_(nullptr, nullptr),
@@ -65,7 +66,7 @@ void SdlDisplayBitmap::Present()
 	if (!pixels_) return;
 
 	SDL_UnlockTexture(texture_.get());
-	SDL_RenderCopy(renderer_, texture_.get(), NULL, NULL);
+	SDL_RenderCopy(renderer_, texture_.get(), NULL, &presentRect_);
 	SDL_RenderPresent(renderer_);
 
 	pixels_ = nullptr;

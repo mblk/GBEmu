@@ -2,7 +2,7 @@
 
 #include "memory.hh"
 
-#include <cstdint>
+#include <cstddef>
 #include <cstdint>
 #include <array>
 

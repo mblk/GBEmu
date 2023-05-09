@@ -164,8 +164,8 @@ private:
 
 private:
 	constexpr static int SampleRate = 44100;
-	//constexpr static int SampleSize = 4096;
-	constexpr static int SampleSize = 16384;
+	constexpr static int SampleSize = 4096;
+	//constexpr static int SampleSize = 16384;
 
 	uint32_t deviceId_;
 	int ticks_;

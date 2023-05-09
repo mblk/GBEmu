@@ -23,7 +23,7 @@ void Rom::Load(const std::string &filename)
 
 	if (!stream.is_open() || stream.bad())
 	{
-		printf("unable to open rom file\n");
+		printf("unable to open rom file: %s\n", filename.c_str());
 		throw new std::runtime_error("unable to open rom file");
 	}
 	
