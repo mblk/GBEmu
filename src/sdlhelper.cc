@@ -37,17 +37,18 @@ int SdlHelper::Initialize()
 	int ret = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	assert(!ret);
 
+#if SDL_VERSION_ATLEAST(2, 24, 0)
 	// Determine which display to use based on the mouse position.
-#ifdef __EMSCRIPTEN__
-	int displayIndexForWindow = 0;
-#else
 	SDL_Point globalMousePos = {};
 	SDL_GetGlobalMouseState(&globalMousePos.x, &globalMousePos.y);
 	int displayIndexContainingMouse = SDL_GetPointDisplayIndex(&globalMousePos);
 	int displayIndexForWindow = displayIndexContainingMouse >= 0
 		? displayIndexContainingMouse
 	 	: 0;
+#else
+	int displayIndexForWindow = 0;
 #endif
+
 	SDL_Rect displayBounds = {};
 	SDL_GetDisplayBounds(displayIndexForWindow, &displayBounds);
 
