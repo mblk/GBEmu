@@ -13,11 +13,6 @@
 #include "timer.hh"
 #include "cpu.hh"
 
-#include <cassert>
-
-#include <chrono>
-#include <thread>
-
 namespace GBEmu::Emulator
 {
 
@@ -25,7 +20,7 @@ struct Emulator::EmulatorData
 {
 	EmulatorData(
 		const std::string &logFileName,
-		const std::string &romFileName,
+		size_t romSize, const void *romData,
 		DisplayBitmap * const debugBitmap,
 		DisplayBitmap &displayBitmap,
 		SoundDevice &soundDevice)
@@ -42,7 +37,7 @@ struct Emulator::EmulatorData
 		timer(log, io, pic),
 		cpu(log, memory, io, pic)
 	{
-		rom.Load(romFileName);
+		rom.Load(romSize, romData);
 
 		memory.Register(&rom, 0x0000);
 		memory.Register(&vram, 0x8000);
@@ -72,14 +67,13 @@ struct Emulator::EmulatorData
 
 Emulator::Emulator(
 	const std::string &logFileName,
-	const std::string &romFileName,
+	size_t romSize, const void *romData,
 	DisplayBitmap * const debugBitmap,
 	DisplayBitmap &displayBitmap,
 	SoundDevice &soundDevice)
-	:emulatorData_(std::make_unique<EmulatorData>(logFileName, romFileName, debugBitmap, displayBitmap, soundDevice)),
-	prevTime_(std::chrono::high_resolution_clock::now()),
-	statPrevTime_(std::chrono::high_resolution_clock::now()),
-	statTicks_(0)
+	:emulatorData_(
+		std::make_unique<EmulatorData>(logFileName, romSize, romData, debugBitmap, displayBitmap, soundDevice)
+	)
 {
 }
 
@@ -87,24 +81,21 @@ Emulator::~Emulator()
 {
 }
 
-void Emulator::Tick(const KeypadKeys &keys)
+void Emulator::Tick(double dt, const KeypadKeys &keys)
 {
-	const int numberOfCpuCyclesPerBatch = 4;
-
-	const double targetTicksPerSecond = 4194304.0; // 4.194304MHz
-	const double targetTicksDuration = 1.0 / targetTicksPerSecond; // ~238ns
-
-	const int ticksPerFrame = 4194304 / 60;
+	const double targetTicksPerSecond = 4194304.0; // 4.194304MHz CPU Clock
+	const int targetTicksThisFrame = (int)(dt * targetTicksPerSecond); // 69905 @ 60 FPS
+	const int cpuCyclesPerBatch = 4;
 
 	// Run emulator ticks.
-	int totalTicks = 0;
+	int executedTicks = 0;
 	{
-		while(totalTicks < ticksPerFrame)
+		while(executedTicks < targetTicksThisFrame)
 		{
 			int batchTicks = 0;
-			for (int cpuCycle = 0; cpuCycle < numberOfCpuCyclesPerBatch; cpuCycle++)
+			for (int cpuCycle = 0; cpuCycle < cpuCyclesPerBatch; cpuCycle++)
 				batchTicks += emulatorData_->cpu.Tick();
-			totalTicks += batchTicks;
+			executedTicks += batchTicks;
 
 			emulatorData_->keypad.SetKeys(keys);
 			emulatorData_->display.Tick(batchTicks);
@@ -113,43 +104,23 @@ void Emulator::Tick(const KeypadKeys &keys)
 		}
 	}
 
-	// Slow down to match the correct CPU speed.
-	#ifndef __EMSCRIPTEN__
-	for (;;)
-	{
-		const auto now = std::chrono::high_resolution_clock::now();
-		const auto currentDt = std::chrono::duration<double, std::nano>(now - prevTime_);
-		const auto targetDt = std::chrono::duration<double, std::nano>(
-			static_cast<double>(totalTicks) * targetTicksDuration * 1000.0 * 1000.0 * 1000.0);
-
-		if (currentDt > targetDt)
-		{
-			// Must use long long here as that's what high_resolution_clock is using internally.
-			// Maybe there's a cleaner way to do this.
-			prevTime_ = now - std::chrono::nanoseconds(static_cast<long long>((currentDt - targetDt).count()));
-			break;
-		}
-	}
-	#endif
-
 	// Stats
 	{
-		const auto now = std::chrono::high_resolution_clock::now();
-		const auto dt = std::chrono::duration<double>(now - statPrevTime_);
+		statTime_ += dt;
+		statTicks_ += executedTicks;
 
-		double dtSeconds = dt.count();
-
-		statTicks_ += totalTicks;
-		
-		if (dtSeconds > 2.5)
+		if (statTime_ > 2.5)
 		{
-			const double ticksPerSecond = double(statTicks_) / dtSeconds;
+			const double ticksPerSecond = double(statTicks_) / statTime_;
 			const double absError = ticksPerSecond - targetTicksPerSecond;
 			const double relError = absError / targetTicksPerSecond;
 
-			printf("dt %.3lf ticks %d tps %.3lf absError %.3lf relError %.3lf%%\n", dtSeconds, statTicks_, ticksPerSecond, absError, relError*100.0);
+			printf("Emulation speed error %0.3f%%\n", relError);
 
-			statPrevTime_ = now;
+			// printf("dt %.3lf ticks %d tps %.3lf absError %.3lf relError %.3lf%%\n",
+			// 	statTime_, statTicks_, ticksPerSecond, absError, relError*100.0);
+
+			statTime_ = 0;
 			statTicks_ = 0;
 		}
 	}

@@ -1,6 +1,11 @@
 #!/bin/bash
 
+if [ -d build_em ]; then
+    rm build_em -R
+fi
+
 mkdir -p build_em
+cp www/index.html build_em/
 
 time emcc src/*.cc src/emulator/*.cc \
     -o build_em/gbemu.html \
@@ -21,12 +26,14 @@ time emcc src/*.cc src/emulator/*.cc \
 rm /srv/www/gbemu/* -v
 cp build_em/* /srv/www/gbemu -v
 
-
-
-# 3.1.37 kaputt
-# 3.1.20 kaputt
-# 3.1.15 kaputt
-
-# 3.1.14 ok
-# 3.1.9 ok
-# 3.0.0 ok
+#
+# SDL2_ttf seems to be broken in the newest version of emscripten:
+#
+# - 3.1.37 broken
+# - 3.1.20 broken
+# - 3.1.15 broken
+#
+# - 3.1.14 ok
+# - 3.1.9  ok
+# - 3.0.0  ok
+#

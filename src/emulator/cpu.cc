@@ -53,12 +53,6 @@ Cpu::Cpu(Log &log, Memory &memory, IO &io, Pic &pic)
 		instructions10_[opcode] = { name, operands, cycles, handler, nullptr };
 	};
 
-	// xxx
-	auto push8 = [&](uint8_t v)
-	{
-		r.sp--;
-		m.Write(r.sp, v);
-	};
 	auto push16 = [&](uint16_t v)
 	{
 		uint8_t l = v & 0xFF;
@@ -67,12 +61,7 @@ Cpu::Cpu(Log &log, Memory &memory, IO &io, Pic &pic)
 		m.Write(r.sp + 0, l);
 		m.Write(r.sp + 1, h);
 	};
-	auto pop8 = [&]() -> uint8_t
-	{
-		uint8_t v = m.Read(r.sp);
-		r.sp++;
-		return v;
-	};
+
 	auto pop16 = [&]() -> uint16_t
 	{
 		uint8_t l = m.Read(r.sp + 0);

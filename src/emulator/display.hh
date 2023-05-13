@@ -49,6 +49,9 @@ public:
 		if (height) *height = 144;
 	}
 
+	static int GetWidth() { return 160; }
+	static int GetHeight() { return 144; }
+
 private:
 	void DrawLine(uint8_t y);
 	void DrawLineBackgroundTile(uint8_t index, uint8_t x, uint8_t y, uint8_t lineOffsetY);

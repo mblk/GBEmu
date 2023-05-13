@@ -1,11 +1,10 @@
 #include "touchui.hh"
-
+#include "sdlhelper.hh"
 #include "emulator/keypad.hh"
 
 #include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
-#include <SDL_ttf.h>
-#undef main
+#undef main // ?????
 
 namespace GBEmu
 {
@@ -94,69 +93,94 @@ static std::array<TouchPoint, 8> GetTouchPoints(const SDL_Rect& displayRect, con
     return result;
 }
 
-TouchUi::TouchUi(SDL_Renderer *renderer, const SDL_Rect& displayRect, const SDL_Rect& uiRect)
-    :renderer_(renderer),
+TouchUi::TouchUi(SdlHelper& sdlHelper, const SDL_Rect& displayRect, const SDL_Rect& uiRect)
+    :sdlHelper_(sdlHelper),
     displayRect_(displayRect),
     uiRect_(uiRect),
+    useTouchInput_(SDL_GetNumTouchDevices() > 0),
     touchPoints_(GetTouchPoints(displayRect, uiRect)),
-    contacts_({})
+    contacts_({}),
+    keyboardKeyStates_({})
 {
-}
-
-int TouchUi::Initialize(const std::string &fontFileName)
-{
-    if (TTF_Init()) {
-        printf("TTF_Init failed: %s\n", TTF_GetError());
-        return -1;
-    }
-
-    font_ = TTF_OpenFont(fontFileName.c_str(), 24);
-    if(!font_) {
-        printf("TTF_OpenFont(%s) failed: %s\n", fontFileName.c_str(), TTF_GetError());
-        return -1;
-    }
-
-    return 0;
 }
 
 void TouchUi::ProcessEvent(const SDL_Event& event)
 {
+    // Helper function that translates sdl keys to emulator keys.
+	auto TranslateKeyCode = [](SDL_Keycode keyCode) -> int {
+		switch (keyCode)
+		{
+		case SDLK_a: return GBEmu::Emulator::Keypad::Left;
+		case SDLK_d: return GBEmu::Emulator::Keypad::Right;
+		case SDLK_w: return GBEmu::Emulator::Keypad::Up;
+		case SDLK_s: return GBEmu::Emulator::Keypad::Down;
+		case SDLK_j: return GBEmu::Emulator::Keypad::A;
+		case SDLK_k: return GBEmu::Emulator::Keypad::B;
+		case SDLK_e: return GBEmu::Emulator::Keypad::Start;
+		case SDLK_q: return GBEmu::Emulator::Keypad::Select;
+		default: return -1;
+		}
+	};
+
     switch (event.type)
     {
 		case SDL_MOUSEBUTTONDOWN:
         {
-            const SDL_FingerID finger = (SDL_FingerID)event.button.button;
-            const TouchPoint* closestTouchPoint = GetClosest(event.button.x, event.button.y);
-            if (closestTouchPoint)
+            if (event.button.y < uiRect_.y)
             {
-                AddContact(finger, closestTouchPoint->index_);
+                if (exitHandler_)
+                    exitHandler_();
+                return;
+            }
+
+            if (!useTouchInput_) {
+                const SDL_FingerID finger = (SDL_FingerID)event.button.button;
+                const TouchPoint* closestTouchPoint = GetClosest(event.button.x, event.button.y);
+                if (closestTouchPoint)
+                    AddContact(finger, closestTouchPoint->index_);
             }
             break;
         }
 
 		case SDL_MOUSEBUTTONUP:
         {
-            const SDL_FingerID finger = (SDL_FingerID)event.button.button;
-            RemoveContact(finger);
+            if (!useTouchInput_) {
+                const SDL_FingerID finger = (SDL_FingerID)event.button.button;
+                RemoveContact(finger);
+            }
 			break;
         }
 
 		case SDL_FINGERDOWN:
+        case SDL_FINGERMOTION:
         {
-            int x = (int)(event.tfinger.x * (float)displayRect_.w);
-            int y = (int)(event.tfinger.y * (float)displayRect_.h);
-            const TouchPoint* closestTouchPoint = GetClosest(x, y);
-            if (closestTouchPoint)
-            {
-                AddContact(event.tfinger.fingerId, closestTouchPoint->index_);
+            if (useTouchInput_) {
+                int x = (int)(event.tfinger.x * (float)displayRect_.w);
+                int y = (int)(event.tfinger.y * (float)displayRect_.h);
+                const TouchPoint* closestTouchPoint = GetClosest(x, y);
+                if (closestTouchPoint)
+                    AddContact(event.tfinger.fingerId, closestTouchPoint->index_);
             }
 			break;
         }
 
 		case SDL_FINGERUP:
         {
-            RemoveContact(event.tfinger.fingerId);
+            if (useTouchInput_) {
+                RemoveContact(event.tfinger.fingerId);
+            }
 			break;
+        }
+
+        case SDL_KEYUP:
+        case SDL_KEYDOWN:
+        {
+            int key = TranslateKeyCode(event.key.keysym.sym);
+			if (key >= 0 && key < 8)
+			{
+				keyboardKeyStates_[key] = event.type == SDL_KEYDOWN;
+			}
+            break;
         }
     }
 }
@@ -165,10 +189,15 @@ void TouchUi::GetKeyStates(std::array<bool, 8> &output) const
 {
     for(const Contact& contact : contacts_)
     {
-        if (contact.active_)
+        if (contact.active_ && contact.key_ < 8)
         {
             output[contact.key_] = true;
         }
+    }
+
+    for(size_t i=0; i<keyboardKeyStates_.size(); i++)
+    {
+        output[i] |= keyboardKeyStates_[i];
     }
 }
 
@@ -196,8 +225,17 @@ const TouchPoint* TouchUi::GetClosest(int x, int y) const
 
 void TouchUi::AddContact(SDL_FingerID finger, int key)
 {
-    RemoveContact(finger);
+    // Update active contact?
+    for(Contact& contact : contacts_)
+    {
+        if (contact.active_ && contact.finger_ == finger)
+        {
+            contact.key_ = key;
+            return;
+        }
+    }
 
+    // Create new contact for this finger.
     for(Contact& contact : contacts_)
     {
         if (!contact.active_)
@@ -227,10 +265,9 @@ void TouchUi::RemoveContact(SDL_FingerID finger)
 
 void TouchUi::Render()
 {
-    SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 0xFF);
-    SDL_RenderClear(renderer_);
+    SDL_Renderer *renderer = sdlHelper_.GetRenderer();
 
-	SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
 	std::array<bool, 8> keyStates = {};
 	GetKeyStates(keyStates);
@@ -240,30 +277,12 @@ void TouchUi::Render()
         const SDL_Point& p = touchPoint.position_;
 
         if (keyStates[touchPoint.index_])
-            filledCircleRGBA(renderer_, p.x, p.y, 50, 255, 255, 255, 255);
+            filledCircleRGBA(renderer, p.x, p.y, 50, 255, 255, 255, 255);
         else
-            circleRGBA(renderer_, p.x, p.y, 50, 255, 255, 255, 255);
+            circleRGBA(renderer, p.x, p.y, 50, 255, 255, 255, 255);
 
-        RenderTextSlow(p.x, p.y, touchPoint.label_);
+        sdlHelper_.RenderTextCenter(p.x, p.y, touchPoint.label_);
     }
-}
-
-void TouchUi::RenderTextSlow(int x, int y, const char *text)
-{
-    SDL_Surface *surface = TTF_RenderText_Solid(font_, text, { 255, 255, 255, 255});
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer_, surface);
-
-    const SDL_Rect rect = {
-        .x = x - surface->w / 2,
-        .y = y - surface->h / 2,
-        .w = surface->w,
-        .h = surface->h,
-    };
-
-    SDL_RenderCopy(renderer_, texture, NULL, &rect);
-
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
 }
 
 }

@@ -16,7 +16,8 @@ class Rom : public MemoryRegion
 public:
 	Rom(Log &log);
 
-	void Load(const std::string &filename);
+	void Load(size_t size, const void *data);
+	//void Load(const std::string &filename);
 
 	virtual uint16_t GetSize() const override { return size_; }
 	virtual uint8_t Read(uint16_t offset) override;

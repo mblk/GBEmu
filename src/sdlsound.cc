@@ -91,7 +91,7 @@ void SdlSound::SDL_AudioCallback(void *userdata, uint8_t* stream_, int len)
 	assert(stream);
 
 	if(sdlSound->sampleBuffer_.DataSize() < len * 2) {
-		printf("Audio buffer underrun\n");
+		//printf("Audio buffer underrun\n");
 		memset(stream, 0, len);
 		return;
 	}

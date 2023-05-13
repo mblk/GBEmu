@@ -8,35 +8,41 @@
 namespace GBEmu
 {
 
-SdlDisplayBitmap::SdlDisplayBitmap(SDL_Renderer *renderer, const SDL_Rect& presentRect, int width, int height)
+SdlDisplayBitmap::SdlDisplayBitmap(SDL_Renderer *renderer, const SDL_Rect& presentRect)
 	:renderer_(renderer),
 	presentRect_(presentRect),
-	width_(width),
-	height_(height),
-	texture_(nullptr, nullptr),
+	width_(GBEmu::Emulator::Display::GetWidth()),
+	height_(GBEmu::Emulator::Display::GetHeight()),
+	textures_{ {nullptr, nullptr}, {nullptr, nullptr} },
+	activeTextureIndex_(0),
 	pixels_(nullptr),
 	pitch_(0)
 {
 	// Assert before trying to initialize the unique_ptr.
 	assert(renderer);
-	assert(width > 0);
-	assert(height > 0);
+	assert(width_ > 0);
+	assert(height_ > 0);
 
-	texture_ = std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)>(
-		SDL_CreateTexture(renderer_,
-			SDL_PIXELFORMAT_BGRA8888,
-			SDL_TEXTUREACCESS_STREAMING,
-			width,
-			height),
-		SDL_DestroyTexture);
+	for(int i=0; i<2; i++)
+	{
+		textures_[i] = std::unique_ptr<SDL_Texture, void(*)(SDL_Texture*)>(
+			SDL_CreateTexture(renderer_,
+				SDL_PIXELFORMAT_BGRA8888,
+				SDL_TEXTUREACCESS_STREAMING,
+				width_,
+				height_),
+			SDL_DestroyTexture);
+	}
 }
 
 void SdlDisplayBitmap::Clear()
 {
+	auto& activeTexture = textures_[activeTextureIndex_];
+
 	void *pixels = nullptr;
 	int pitch = 0;
 
-	SDL_LockTexture(texture_.get(), nullptr, &pixels, &pitch);
+	SDL_LockTexture(activeTexture.get(), nullptr, &pixels, &pitch);
 	assert(pixels);
 	assert(pitch);
 
@@ -65,12 +71,22 @@ void SdlDisplayBitmap::Present()
 {
 	if (!pixels_) return;
 
-	SDL_UnlockTexture(texture_.get());
-	SDL_RenderCopy(renderer_, texture_.get(), NULL, &presentRect_);
-	SDL_RenderPresent(renderer_);
+	auto& activeTexture = textures_[activeTextureIndex_];
+
+	SDL_UnlockTexture(activeTexture.get());
+	//SDL_RenderCopy(renderer_, texture_.get(), NULL, &presentRect_);
 
 	pixels_ = nullptr;
 	pitch_ = 0;
+
+	activeTextureIndex_ = (activeTextureIndex_ + 1) % 2;
+}
+
+void SdlDisplayBitmap::Render()
+{
+	auto& renderTexture = textures_[(activeTextureIndex_ + 1) % 2];
+
+	SDL_RenderCopy(renderer_, renderTexture.get(), NULL, &presentRect_);
 }
 
 }

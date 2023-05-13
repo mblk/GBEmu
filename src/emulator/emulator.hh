@@ -1,9 +1,7 @@
 #pragma once
 
 #include <string>
-#include <chrono>
 #include <memory>
-#include <array>
 
 #include "keypad.hh"
 
@@ -18,21 +16,21 @@ class Emulator
 public:
 	Emulator(
 		const std::string &logFileName,
-		const std::string &romFileName,
+		size_t romSize, const void *romData,
 		DisplayBitmap * const debugBitmap,
 		DisplayBitmap &displayBitmap,
 		SoundDevice &soundDevice);
-	~Emulator();
+	virtual ~Emulator();
 
-	void Tick(const KeypadKeys &keys);
+	void Tick(double dt, const KeypadKeys &keys);
 
 private:
 	struct EmulatorData;
 	const std::unique_ptr<EmulatorData> emulatorData_;
 
-	std::chrono::high_resolution_clock::time_point prevTime_;
-	std::chrono::high_resolution_clock::time_point statPrevTime_;
-	int statTicks_;
+	bool statFirstCall_ = true;
+	double statTime_ = 0;
+	int statTicks_ = 0;
 };
 
 }

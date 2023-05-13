@@ -6,6 +6,7 @@
 #include <exception>
 
 #include <cassert>
+#include <cstring>
 
 
 namespace GBEmu::Emulator
@@ -16,6 +17,29 @@ Rom::Rom(Log &log)
 {
 }
 
+void Rom::Load(size_t size, const void *data)
+{
+	assert(size);
+	assert(data);
+
+	log_.Rom("Rom size: " + AsHexString(size));
+
+	assert(size > 0);
+	assert(!(size % (32 * 1024)));
+
+	data_.resize(size);
+	memcpy(data_.data(), data, size); // TODO do it the "c++ way"
+
+	cartridgeType_ = data_[0x147];
+	romSize_ = data_[0x148];
+
+	romBank_ = 0; //( ??
+
+	log_.Rom("Cartridge type: " + AsHexString(cartridgeType_));
+	log_.Rom("Size: " + AsHexString(romSize_));
+}
+
+#if 0
 void Rom::Load(const std::string &filename)
 {
 	// Open file.
@@ -88,6 +112,7 @@ void Rom::Load(const std::string &filename)
 	// Close file.
 	stream.close();
 }
+#endif
 
 uint8_t Rom::Read(uint16_t offset)
 {
